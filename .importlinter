@@ -1,0 +1,20 @@
+[importlinter]
+root_packages = mirrorwall
+
+[importlinter:contract:no-application-imports]
+name = MirrorWall must not import applications
+type = forbidden
+source_modules = mirrorwall
+forbidden_modules =
+    freeweight
+    loadcoach
+    ideapress
+
+[importlinter:contract:no-sibling-packages]
+name = MirrorWall must not import sibling capability packages
+type = forbidden
+source_modules = mirrorwall
+forbidden_modules =
+    modelrack
+    sweatmeter
+    weightsdb
