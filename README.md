@@ -3,11 +3,10 @@
 Design tokens, layout, component macros, SSE and JSON/error envelope helpers so three applications look like one family without sharing a page.
 
 **Status:** specified, not yet implemented. This repository currently holds the project scaffold
-(directory structure, tooling configuration, and a local copy of the relevant suite documentation) —
+(directory structure, tooling configuration, and the project documentation) —
 see [development plan](docs/packages/mirrorwall/development-plan.md) for what each phase adds.
 
-Part of the **Local AI Suite** — see [docs/architecture/executive-summary.md](docs/architecture/executive-summary.md)
-for how MirrorWall fits with the suite's other applications and packages.
+Part of the **Local AI Suite**.
 
 ## Install
 
@@ -25,16 +24,12 @@ See [docs/packages/mirrorwall/spec.md](docs/packages/mirrorwall/spec.md) §20 fo
 
 ## Documentation
 
-This repository carries its own copy of the relevant suite documentation under [`docs/`](docs/README.md),
-so it can be read and implemented independently of the other eight suite repositories. Start with
-[`docs/README.md`](docs/README.md).
+Project documentation lives under [`docs/`](docs/README.md). Start with [`docs/README.md`](docs/README.md).
 
 | Read this | For |
 |---|---|
 | [docs/packages/mirrorwall/spec.md](docs/packages/mirrorwall/spec.md) | Purpose, scope, non-goals, public contracts, configuration, acceptance criteria |
 | [docs/packages/mirrorwall/development-plan.md](docs/packages/mirrorwall/development-plan.md) | The phased build plan: goals, work, tests, acceptance criteria per phase |
-| [docs/standards/](docs/standards/) | Coding, testing, security, API, database and packaging standards every phase follows |
-| [docs/adr/](docs/adr/README.md) | The architectural decisions this design rests on |
 
 ## Development
 

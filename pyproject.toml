@@ -38,8 +38,9 @@ dev = [
 ]
 
 [project.urls]
-Documentation = "docs/"
-Changelog = "CHANGELOG.md"
+Homepage = "https://github.com/JPKell/MirrorWall"
+Documentation = "https://github.com/JPKell/MirrorWall/tree/main/docs"
+Changelog = "https://github.com/JPKell/MirrorWall/blob/main/CHANGELOG.md"
 
 [tool.hatch.version]
 path = "src/mirrorwall/__about__.py"

@@ -2,8 +2,8 @@
 
 **Type:** Python package (web/UI toolkit) · **Import/distribution name:** `mirrorwall` · **Layer:** 3
 **Status:** Specified, not implemented. **Extraction timing:** LoadCoach Phase 4, from FreeWeight's
-web layer ([ADR-0011](../../adr/0011-shared-package-boundaries.md)).
-**Decision records:** [ADR-0020](../../adr/0020-ui-rendering-strategy.md), [ADR-0004](../../adr/0004-sse-vs-websockets.md).
+web layer (ADR-0011).
+**Decision records:** ADR-0020, ADR-0004.
 
 ---
 
@@ -45,7 +45,7 @@ fonts, icons).
 
 | Responsibility | Detail |
 |---|---|
-| Design tokens | `tokens.css` and `tokens.json` per [UI/UX Standards](../../standards/ui-ux-standards.md), with per-application accent override |
+| Design tokens | `tokens.css` and `tokens.json` per ui ux standards, with per-application accent override |
 | Base layout | Shell template: header slot, telemetry bar, content block, footer, theme bootstrap script |
 | Components | Jinja macros: button, input, select, checkbox/radio/switch, card, table, badge, tabs, drawer, dialog, toast, tooltip, progress, empty state, pagination, filter bar, key–value list, code/JSON viewer, chart container |
 | Telemetry bar | Macro + JS module consuming a generic telemetry payload, rendering `—` for unsupported values |
@@ -150,7 +150,7 @@ table preferences.
 4. Error bodies are `{"error": {…}}` with the inner object matching `setspec.ErrorEnvelope`, and are
    **not** SetSpec-wrapped. Event frames **are** SetSpec-wrapped, with the event as `payload` and the
    envelope fields as its siblings. `token` frames are bare. There is exactly one shape for each
-   ([ADR-0025](../../adr/0025-envelope-boundaries.md)).
+   (ADR-0025).
 4a. No call into an application's `EventSource` runs on the event loop.
 5. Autoescaping is always on; no macro renders unescaped user or model content.
 6. Every component is keyboard-operable and meets the contrast requirement in both themes.
@@ -221,7 +221,7 @@ and no transpilation — native ES modules only.
 | Theme | No-flash bootstrap; persistence; chart re-theme hook fires |
 | Accessibility | Contrast over every token pair in both themes; keyboard traversal of table, drawer, dialog, tabs; focus trap and restore |
 | Offline | No absolute external URL anywhere in templates, CSS or JS |
-| Two consumers | Both applications' template suites render against the current version in CI. The suites are obtained from the applications' published distributions as a **test-only** dependency of MirrorWall's `dev` extra — the same channel that gives consumers the OpenAPI snapshots ([Testing Standards §8](../../standards/testing-standards.md)) — never by importing application code, which `lint-imports` continues to forbid |
+| Two consumers | Both applications' template suites render against the current version in CI. The suites are obtained from the applications' published distributions as a **test-only** dependency of MirrorWall's `dev` extra — the same channel that gives consumers the OpenAPI snapshots (Testing Standards §8) — never by importing application code, which `lint-imports` continues to forbid |
 | Host and CSRF middleware | Disallowed `Host` ⇒ 421 before routing and before auth; forged form post ⇒ 403; cross-origin JSON post rejected |
 | SSE threading | An `EventSource` whose `replay` blocks for 200 ms does not delay the event loop (measured with an event-loop lag probe) |
 | JS modules | Unit-tested with a lightweight DOM harness (no browser, no npm): table sort/filter, SSE client reconnect, theme toggle |

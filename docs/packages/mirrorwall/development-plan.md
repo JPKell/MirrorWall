@@ -1,7 +1,7 @@
 # MirrorWall — Development Plan
 
 **Sequence position:** extracted during **LoadCoach Phase 4**, from FreeWeight's web layer
-([ADR-0011](../../adr/0011-shared-package-boundaries.md)). FreeWeight adopts it in FreeWeight
+(ADR-0011). FreeWeight adopts it in FreeWeight
 Phase 12.
 **Target:** `mirrorwall 0.2.0` by the end of Phase 3.
 
@@ -80,12 +80,12 @@ loses nothing.
   bounded queue with drop, heartbeat, terminal event on source failure, clean close on disconnect.
   **Every call into the (synchronous, database-backed) `EventSource` is dispatched with
   `anyio.to_thread.run_sync`**, here and only here, so no application can put a blocking `SELECT` on
-  the event loop ([ADR-0003 §6–8](../../adr/0003-sync-vs-async-strategy.md)). Replay reads in bounded
+  the event loop (ADR-0003 §6–8). Replay reads in bounded
   batches; the steady-state stream is served from the in-memory fan-out without touching the database.
 * Frame shape: the SetSpec event envelope with the event as `payload`, except `event: token`, which is
-  bare — the one documented exception ([ADR-0025 §3](../../adr/0025-envelope-boundaries.md)).
+  bare — the one documented exception (ADR-0025 §3).
 * `middleware.py` also carries `HostValidationMiddleware` and `CsrfMiddleware`
-  ([ADR-0026](../../adr/0026-local-http-hardening.md)), shared so all three applications behave
+  (ADR-0026), shared so all three applications behave
   identically and the check runs before routing and before authentication.
 * `static.py`: `mount_static`, `asset_url` with content hashing, cache headers, containment checks.
 * `health.py`: `ComponentStatus`, `ComponentHealth`, `health_payload`, `worst_status`.
@@ -172,7 +172,7 @@ docs/{components.md,adoption-checklist.md}
 3. Both applications' page suites render against the release candidate in CI, obtained from their
    published distributions as a **test-only** dependency of MirrorWall's `dev` extra — never by
    importing application code, which `lint-imports` continues to forbid
-   ([Testing Standards §8](../../standards/testing-standards.md)).
+   (Testing Standards §8).
 4. `mirrorwall 0.2.0` published; the adoption checklist is written and reviewed.
 
 **Known risks:** JS complexity growing past the "islands" budget. Mitigated by the size budget being a
