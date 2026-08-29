@@ -510,3 +510,63 @@ async def test_two_hundred_idle_subscribers_stay_within_the_memory_budget() -> N
 @pytest.fixture
 def anyio_backend() -> str:
     return "asyncio"
+
+
+@pytest.mark.anyio
+async def test_a_terminal_event_closes_the_stream() -> None:
+    """A finite stream must end, or it holds a connection open for a producer that is done."""
+    source = RecordingSource()
+    source.append(_event(1, "token"))
+    source.append(_event(2, "result"))
+    source.append(_event(3, "should.never.arrive"))
+    response = sse_response(
+        source,
+        stream_id="s",
+        last_event_id=None,
+        generator=GENERATOR,
+        poll_interval_seconds=0.01,
+        terminal_events=frozenset({"result", "error"}),
+    )
+    body = _body_iterator(response)
+    frames = [_text(chunk) async for chunk in body]
+    assert _sequences(frames) == [1, 2]
+    assert "should.never.arrive" not in "".join(frames)
+
+
+@pytest.mark.anyio
+async def test_a_terminal_event_arriving_live_also_closes_the_stream() -> None:
+    source = RecordingSource(queue_size=16)
+    response = sse_response(
+        source,
+        stream_id="s",
+        last_event_id=None,
+        generator=GENERATOR,
+        poll_interval_seconds=0.01,
+        terminal_events=frozenset({"result"}),
+    )
+    body = _body_iterator(response)
+    source.append(_event(1, "token"))
+    source.append(_event(2, "result"))
+    frames: list[str] = []
+    with anyio.move_on_after(5):
+        async for chunk in body:
+            frames.append(_text(chunk))
+    assert _sequences(frames) == [1, 2], frames
+    assert source.subscribe_exits == 1, "the subscription outlived the terminal event"
+
+
+@pytest.mark.anyio
+async def test_without_terminal_events_the_stream_stays_open() -> None:
+    """The default: an open-ended stream runs until the client goes away."""
+    source = RecordingSource()
+    source.append(_event(1, "result"))
+    response = sse_response(
+        source, stream_id="s", last_event_id=None, generator=GENERATOR, poll_interval_seconds=0.01
+    )
+    body = _body_iterator(response)
+    saw = 0
+    with anyio.move_on_after(0.3):
+        async for _ in body:
+            saw += 1
+    await body.aclose()
+    assert saw >= 1

@@ -60,6 +60,7 @@ __all__ = [
     "DEFAULT_POLL_INTERVAL_SECONDS",
     "DEFAULT_QUEUE_SIZE",
     "DEFAULT_REPLAY_BATCH_SIZE",
+    "DEFAULT_TERMINAL_EVENTS",
     "EVENT_SCHEMA",
     "EVENT_SCHEMA_VERSION",
     "TOKEN_EVENT",
@@ -88,6 +89,15 @@ DEFAULT_HEARTBEAT_SECONDS: Final = 15.0
 DEFAULT_QUEUE_SIZE: Final = 256
 DEFAULT_REPLAY_BATCH_SIZE: Final = 200
 DEFAULT_POLL_INTERVAL_SECONDS: Final = 0.05
+
+DEFAULT_TERMINAL_EVENTS: Final[frozenset[str]] = frozenset()
+"""Which event names end a stream, by default none.
+
+An open-ended stream — telemetry, a dashboard — has no terminal event and runs until the client
+goes away. A finite one — a generation, a benchmark run — ends with a named event, and a stream
+that kept polling after it would hold a connection open forever for a producer that has nothing
+left to say. The names are the application's, because only the application knows which of its own
+events is the last one."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -344,6 +354,7 @@ async def _frames(
     heartbeat_seconds: float,
     replay_batch_size: int,
     poll_interval_seconds: float,
+    terminal_events: frozenset[str],
 ) -> AsyncIterator[str]:
     """Produce the frames of one stream: replay, then live, with the handoff reconciled."""
     highest = parse_last_event_id(last_event_id)
@@ -369,6 +380,8 @@ async def _frames(
                     continue
                 yield format_frame(event, generator=generator)
                 highest = event.sequence
+                if event.type in terminal_events:
+                    return
             if len(batch) < replay_batch_size:
                 break
 
@@ -390,6 +403,8 @@ async def _frames(
                 continue
             yield format_frame(live, generator=generator)
             highest = live.sequence
+            if live.type in terminal_events:
+                return
     except Exception as exc:  # noqa: BLE001 — any source failure becomes one terminal frame
         logger.exception("sse.source_failed", extra={"stream_id": stream_id})
         yield _error_frame(highest + 1, generator, f"The event source failed: {exc}")
@@ -412,6 +427,7 @@ def sse_response(
     queue_size: int = DEFAULT_QUEUE_SIZE,
     replay_batch_size: int = DEFAULT_REPLAY_BATCH_SIZE,
     poll_interval_seconds: float = DEFAULT_POLL_INTERVAL_SECONDS,
+    terminal_events: frozenset[str] = DEFAULT_TERMINAL_EVENTS,
 ) -> StreamingResponse:
     """Stream ``stream_id``'s events, resuming after ``last_event_id`` with no gap or duplicate.
 
@@ -429,6 +445,8 @@ def sse_response(
         poll_interval_seconds: How long the loop sleeps when the subscription is empty. Half of
             this is the median added latency of a live event; it buys the stream costing no
             threadpool slot at all while idle.
+        terminal_events: Event names after which the stream closes. Empty (the default) means the
+            stream is open-ended and runs until the client disconnects.
 
     Returns:
         The streaming response, with the headers that stop a proxy from buffering it into
@@ -443,6 +461,7 @@ def sse_response(
             heartbeat_seconds=heartbeat_seconds,
             replay_batch_size=replay_batch_size,
             poll_interval_seconds=poll_interval_seconds,
+            terminal_events=terminal_events,
         ),
         media_type="text/event-stream",
         headers={

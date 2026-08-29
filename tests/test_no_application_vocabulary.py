@@ -86,18 +86,19 @@ def _strip_python(text: str) -> str:
         tree = ast.parse(text)
     except SyntaxError:  # pragma: no cover — the file would not import either
         return "\n".join(lines)
+    # Every standalone string expression statement, not only a function's or a class's first
+    # one: PEP 258 attribute docstrings — the bare string under a module-level constant — are
+    # prose too, and this package uses them for every public constant. A string that is *used*
+    # (assigned, passed, returned) is not an expression statement and survives, which is what
+    # keeps a class name or a CSS selector in a string literal inside the scan.
     for node in ast.walk(tree):
-        if not isinstance(node, ast.Module | ast.ClassDef | ast.FunctionDef | ast.AsyncFunctionDef):
-            continue
-        body = node.body
-        first = body[0] if body else None
         if (
-            isinstance(first, ast.Expr)
-            and isinstance(first.value, ast.Constant)
-            and isinstance(first.value.value, str)
-            and first.end_lineno is not None
+            isinstance(node, ast.Expr)
+            and isinstance(node.value, ast.Constant)
+            and isinstance(node.value.value, str)
+            and node.end_lineno is not None
         ):
-            for index in range(first.lineno - 1, min(first.end_lineno, len(lines))):
+            for index in range(node.lineno - 1, min(node.end_lineno, len(lines))):
                 lines[index] = ""
     return "\n".join(lines)
 
@@ -156,6 +157,10 @@ def test_the_stripper_removes_comments_and_docstrings_and_nothing_else() -> None
     assert "docstring mentioning" not in python
     assert "# benchmark" not in python
     assert "benchmark_literal" in python, "a string literal is a name, not prose"
+
+    attribute_doc = _strip_python('X = 1\n"""An attribute docstring mentioning benchmark."""\n')
+    assert "attribute docstring" not in attribute_doc, "PEP 258 attribute docstrings are prose"
+    assert "X = 1" in attribute_doc
 
     assert "hidden" not in _strip_block_comments("{# hidden #}<p>kept</p>")
     assert "kept" in _strip_block_comments("{# hidden #}<p>kept</p>")

@@ -57,6 +57,9 @@ packaging and release standards §3.
   - `static/js/{sse,telemetry}.js`: the client half. Events are applied idempotently by sequence,
     so a reconnect's redelivered boundary event does not duplicate a row; an absent telemetry
     reading renders an em dash with its reason, never `0`.
+  - `sse_response(..., terminal_events=...)`: a finite stream — a generation, a benchmark run —
+    closes after its own last event instead of holding a connection open for a producer that has
+    nothing left to say. Empty by default, because an open-ended stream has no such event.
   - Every SSE property is proved by mutation: replay-before-subscribe, a missing dedupe, a
     blocking `replay`, an unbounded queue and a missing cleanup were each applied to the module
     and each confirmed to fail the corresponding test before it was considered finished.
