@@ -34,6 +34,33 @@ packaging and release standards §3.
     ARIA each pattern requires; escaping; `StrictUndefined`; package data present in a wheel that
     the test actually builds.
 
+- Phase 2: the backend helpers — envelopes, request IDs, SSE, static mounting, health.
+  - `sse.py`: `Event`, `Subscription`, `EventBroker`, the `EventSource` protocol and
+    `sse_response`. The stream **subscribes before it replays** and drops from the live queue
+    anything the replay already emitted, which is what makes a reconnect gap-free and
+    duplicate-free at once. Every call into the synchronous, database-backed source — opening the
+    subscription, each bounded replay batch, closing it — goes through `anyio.to_thread.run_sync`
+    (ADR-0003 §6-8); the steady-state stream is served from the in-memory fan-out and takes no
+    threadpool slot at all, which is what makes 200 concurrent subscribers affordable against a
+    40-thread pool. Subscriber queues are bounded and drop the oldest, counting what they dropped.
+    Every frame carries the SetSpec event envelope except `event: token`, which is bare — the one
+    documented exception (ADR-0025 §3).
+  - `middleware.py`: `RequestIdMiddleware` (validate or generate, bind to the logging context,
+    echo `X-Request-ID`, add `X-Response-Time-Ms`), `HostValidationMiddleware` and
+    `CsrfMiddleware` (ADR-0026 §1-2), both running before routing and before authentication.
+  - `responses.py`: `json_response`, `error_response`, `paginated_response`, `clamp_limit`.
+  - `static.py`: `mount_static` and a content-hashing `asset_url` that replaces the Phase 1
+    filter at the same template seam, with immutable cache headers, traversal **and** symlink
+    containment.
+  - `health.py`: `ComponentStatus`, `ComponentHealth`, `health_payload`, `worst_status`.
+    `NOT_CONFIGURED` never worsens a roll-up: a component nobody asked for is not a fault.
+  - `static/js/{sse,telemetry}.js`: the client half. Events are applied idempotently by sequence,
+    so a reconnect's redelivered boundary event does not duplicate a row; an absent telemetry
+    reading renders an em dash with its reason, never `0`.
+  - Every SSE property is proved by mutation: replay-before-subscribe, a missing dedupe, a
+    blocking `replay`, an unbounded queue and a missing cleanup were each applied to the module
+    and each confirmed to fail the corresponding test before it was considered finished.
+
 ### Changed
 - `.importlinter` used the plural `root_packages` with a bare string, which import-linter 2.x
   iterates character by character; and it lacked `include_external_packages`, required whenever a
