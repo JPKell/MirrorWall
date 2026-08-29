@@ -5,7 +5,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 [Semantic Versioning](https://semver.org/), pre-1.0 per
 packaging and release standards §3.
 
-## [Unreleased]
+## [0.2.0] — 2026-08-29
 
 ### Added
 - Phase 1: design tokens, the layout shell and the core components, extracted from FreeWeight's

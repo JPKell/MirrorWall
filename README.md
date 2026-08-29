@@ -2,9 +2,12 @@
 
 Design tokens, layout, component macros, SSE and JSON/error envelope helpers so three applications look like one family without sharing a page.
 
-**Status:** specified, not yet implemented. This repository currently holds the project scaffold
-(directory structure, tooling configuration, and the project documentation) —
-see [development plan](docs/packages/mirrorwall/development-plan.md) for what each phase adds.
+**Status:** Phases 1 and 2 implemented at `0.2.0` — design tokens, the layout shell, the component
+macros, template filters, JSON and error envelopes, request-ID/Host/CSRF middleware, SSE with a
+gap-free replay-to-live handoff, static mounting with content-hashed URLs, and the health
+primitives. LoadCoach renders every page on it. Phase 3 (the interactive table and chart modules,
+the component gallery) is next — see the
+[development plan](docs/packages/mirrorwall/development-plan.md).
 
 Part of the **Local AI Suite**.
 
@@ -17,10 +20,45 @@ pip install mirrorwall
 ## Quickstart
 
 ```python
-import mirrorwall
+from pathlib import Path
+
+from mirrorwall import create_template_environment, mount_static
+
+environment = create_template_environment(
+    app_template_dirs=(Path("src/yourapp/web/templates"),),
+    globals_={
+        "product_name": "YourApp",
+        "product_version": "1.0.0",
+        "nav_items": ({"key": "home", "href": "/", "label": "Home"},),
+        "theme_storage_key": "yourapp-theme",
+    },
+)
+mount_static(app, environment=environment)  # your Starlette/FastAPI application
 ```
 
-See [docs/packages/mirrorwall/spec.md](docs/packages/mirrorwall/spec.md) §20 for a runnable example.
+Then a page is four lines:
+
+```jinja
+{% extends "mirrorwall/base.html" %}
+{% from "mirrorwall/components.html" import table %}
+{% block content %}{{ table(columns, rows, table_id="things", sortable=true) }}{% endblock %}
+```
+
+Streaming, with the replay-to-live handoff, heartbeats and thread dispatch handled for you:
+
+```python
+from mirrorwall import sse_response
+
+return sse_response(
+    your_event_source,
+    stream_id=job_id,
+    last_event_id=request.headers.get("last-event-id"),
+    generator=GeneratorInfo(name="yourapp", version=__version__),
+    terminal_events=frozenset({"result", "error"}),
+)
+```
+
+See [docs/packages/mirrorwall/spec.md](docs/packages/mirrorwall/spec.md) §20 for the full surface.
 
 ## Documentation
 
