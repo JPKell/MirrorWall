@@ -1,1 +1,36 @@
-/* TODO: implement per docs/packages/mirrorwall/development-plan.md */
+/* mirrorwall/reset.css — the minimum needed for the token system to behave predictably.
+ *
+ * Deliberately not a full normalize: the browser's own defaults for headings, lists and form
+ * controls are close to what the components want, and overriding all of them is how a toolkit
+ * ends up fighting itself. */
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: var(--mw-font-ui);
+  background: var(--mw-bg);
+  color: var(--mw-text);
+  margin: 0 auto;
+  max-width: 96rem;
+  padding: 0 var(--mw-space-6) var(--mw-space-12);
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+/* Link text uses --mw-accent-text, not --mw-accent. The brand blue is 3.87:1 on white, below the
+   4.5:1 UI standards §7 calls non-negotiable for body text; the darkened pair keeps the hue
+   recognisable and the text readable. --mw-accent itself still fills buttons, draws the focus
+   ring and colours the chart series, where the 3:1 boundary rule applies instead. */
+a { color: var(--mw-accent-text); }
+a:hover { color: var(--mw-accent-hover); }
+
+:focus-visible {
+  outline: 2px solid var(--mw-accent);
+  outline-offset: 2px;
+}
+
+img, svg, video { max-width: 100%; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

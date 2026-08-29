@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  mirrorwall/icons/sprite.svg — the shared icon set, as one inline SVG sprite.
+
+  Authored here, not vendored: every glyph is a handful of stroked paths on a 24x24 grid, drawn
+  with `currentColor` so it inherits the token colour of whatever it sits in and re-themes with
+  the page for free. A sprite rather than one file per icon, because a page uses several and an
+  extra request each is a worse trade than the few hundred bytes it never uses.
+
+  Usage: <svg class="icon" aria-hidden="true"><use href="/static/mirrorwall/icons/sprite.svg#check"/></svg>
+  An icon that carries meaning on its own gets a <title> and role="img" from the caller instead.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="check" viewBox="0 0 24 24"><path d="M4 12.5 9.5 18 20 6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></symbol>
+  <symbol id="chevron-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="chevron-right" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="sort" viewBox="0 0 24 24"><path d="M8 10l4-4 4 4M8 14l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="filter" viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4 2v-8z" stroke-linejoin="round"/></symbol>
+  <symbol id="search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M15.5 15.5 21 21" stroke-linecap="round"/></symbol>
+  <symbol id="info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01" stroke-linecap="round"/></symbol>
+  <symbol id="warning" viewBox="0 0 24 24"><path d="M12 3 22 20H2z" stroke-linejoin="round"/><path d="M12 10v5M12 18v.01" stroke-linecap="round"/></symbol>
+  <symbol id="error" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6" stroke-linecap="round"/></symbol>
+  <symbol id="refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6" stroke-linecap="round"/><path d="M20 4v5h-5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="download" viewBox="0 0 24 24"><path d="M12 4v10M8 11l4 4 4-4M4 19h16" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" stroke-linecap="round"/></symbol>
+  <symbol id="settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1" stroke-linecap="round"/></symbol>
+  <symbol id="pause" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14" stroke-linecap="round"/></symbol>
+  <symbol id="play" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z" stroke-linejoin="round"/></symbol>
+</svg>

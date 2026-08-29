@@ -1,1 +1,29 @@
-/* TODO: implement per docs/packages/mirrorwall/development-plan.md */
+/* mirrorwall/tables.css — dense, sticky-headed, tabular-numeral tables.
+ *
+ * UI standards §5: a table scrolls horizontally rather than truncating meaning, and an
+ * unsupported value is an em dash — never a zero someone might average. */
+
+.table-scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+caption {
+  text-align: left;
+  color: var(--mw-text-muted);
+  font-size: 12px;
+  padding-bottom: var(--mw-space-2);
+}
+thead th {
+  position: sticky;
+  top: 0;
+  background: var(--mw-surface-alt);
+  z-index: 1;
+}
+th, td {
+  border-bottom: 1px solid var(--mw-border);
+  padding: var(--mw-space-2) var(--mw-space-3);
+  text-align: left;
+  vertical-align: top;
+  height: var(--mw-row-h);
+}
+tbody tr:hover { background: var(--mw-surface-hover); }
+td.numeric, th.numeric { font-variant-numeric: tabular-nums; text-align: right; }
+.row-count { color: var(--mw-text-muted); font-size: 12px; }

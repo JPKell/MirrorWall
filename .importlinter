@@ -1,5 +1,6 @@
 [importlinter]
-root_packages = mirrorwall
+root_package = mirrorwall
+include_external_packages = True
 
 [importlinter:contract:no-application-imports]
 name = MirrorWall must not import applications

@@ -1,1 +1,198 @@
-<!-- TODO: implement per docs/packages/mirrorwall/development-plan.md -->
+{# mirrorwall/components.html — the component macros three applications share (spec §4).
+
+   Every macro is keyword-driven with defaults that make sense for any application: nothing here
+   has a required parameter shaped by one product's data model, which is the specific failure mode
+   this extraction exists to avoid.
+
+   Accessibility is not a later pass. Each macro emits the ARIA its pattern requires — a labelled
+   table, a `role="status"` toast region, a `aria-modal` dialog with a heading it is labelled by —
+   and the accessibility tests assert those attributes rather than trusting them. #}
+
+{% macro button(label, variant="default", type="button", name=None, value=None, disabled=False, aria_label=None, extra="") -%}
+<button type="{{ type }}" data-variant="{{ variant }}"
+        {%- if name %} name="{{ name }}"{% endif %}
+        {%- if value is not none %} value="{{ value }}"{% endif %}
+        {%- if disabled %} disabled{% endif %}
+        {%- if aria_label %} aria-label="{{ aria_label }}"{% endif %} {{ extra }}>{{ label }}</button>
+{%- endmacro %}
+
+{% macro badge(label, tone="neutral", title=None) -%}
+<span class="badge status-{{ tone }}"{% if title %} title="{{ title }}"{% endif %}>{{ label }}</span>
+{%- endmacro %}
+
+{% macro input(name, label, value="", type="text", hint=None, error=None, required=False, placeholder=None) -%}
+{% set field_id = "mw-field-" ~ name %}
+<div class="field">
+  <label for="{{ field_id }}">{{ label }}</label>
+  <input id="{{ field_id }}" name="{{ name }}" type="{{ type }}" value="{{ value }}"
+         {%- if placeholder %} placeholder="{{ placeholder }}"{% endif %}
+         {%- if required %} required{% endif %}
+         {%- if error %} aria-invalid="true" aria-describedby="{{ field_id }}-error"
+         {%- elif hint %} aria-describedby="{{ field_id }}-hint"{% endif %}>
+  {% if error %}<p class="field-error" id="{{ field_id }}-error">{{ error }}</p>
+  {% elif hint %}<p class="field-hint" id="{{ field_id }}-hint">{{ hint }}</p>{% endif %}
+</div>
+{%- endmacro %}
+
+{% macro select(name, label, options, selected=None, hint=None) -%}
+{% set field_id = "mw-field-" ~ name %}
+<div class="field">
+  <label for="{{ field_id }}">{{ label }}</label>
+  <select id="{{ field_id }}" name="{{ name }}"{% if hint %} aria-describedby="{{ field_id }}-hint"{% endif %}>
+    {% for option in options %}
+    <option value="{{ option.value }}"{% if option.value == selected %} selected{% endif %}>{{ option.label }}</option>
+    {% endfor %}
+  </select>
+  {% if hint %}<p class="field-hint" id="{{ field_id }}-hint">{{ hint }}</p>{% endif %}
+</div>
+{%- endmacro %}
+
+{% macro checkbox(name, label, checked=False, kind="checkbox") -%}
+{% set field_id = "mw-field-" ~ name %}
+<div class="field field-inline">
+  <input id="{{ field_id }}" name="{{ name }}" type="{{ kind }}"{% if checked %} checked{% endif %}>
+  <label for="{{ field_id }}">{{ label }}</label>
+</div>
+{%- endmacro %}
+
+{% macro switch(name, label, checked=False) -%}
+{% set field_id = "mw-field-" ~ name %}
+<div class="field field-inline">
+  <button type="button" role="switch" id="{{ field_id }}" data-variant="quiet"
+          aria-checked="{{ 'true' if checked else 'false' }}" data-switch="{{ name }}">{{ label }}</button>
+</div>
+{%- endmacro %}
+
+{% macro card(label, value, note=None) -%}
+<li class="card">
+  <span class="card-label">{{ label }}</span>
+  <span class="card-value">{{ value }}</span>
+  {% if note %}<span class="card-note">{{ note }}</span>{% endif %}
+</li>
+{%- endmacro %}
+
+{% macro table(columns, rows, caption=None, table_id=None, sortable=False, complete=True, row_count=None) -%}
+{# `columns` is a sequence of mappings with a required `label` and an optional `numeric`; `rows` is
+   a sequence of already-rendered cell values. The `numeric` key is tested with `is defined` rather
+   than read directly, because the environment uses StrictUndefined and an omitted optional key is
+   an ordinary column, not a mistake.
+
+   `complete` is not decoration. UI standards §5: a client-side sort must apply to the whole
+   dataset, so a table holding one page of a longer result set declares `complete=False` and the
+   table module refuses to wire a sort control onto it. #}
+<div class="table-scroll">
+  <table{% if table_id %} data-table="{{ table_id }}"{% endif %}
+         data-sortable="{{ 'true' if sortable else 'false' }}"
+         data-complete="{{ 'true' if complete else 'false' }}">
+    {% if caption %}<caption>{{ caption }}</caption>{% endif %}
+    <thead>
+      <tr>
+        {% for column in columns %}
+        <th scope="col"{% if column.numeric is defined and column.numeric %} class="numeric"{% endif %}>{{ column.label }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        {% for cell in row %}
+        <td{% if columns[loop.index0].numeric is defined and columns[loop.index0].numeric %} class="numeric"{% endif %}>{{ cell }}</td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if row_count is not none %}<p class="row-count">{{ row_count }} row{{ '' if row_count == 1 else 's' }}</p>{% endif %}
+{%- endmacro %}
+
+{% macro empty_state(message, action_label=None, action_href=None) -%}
+<div class="empty-state">
+  <p>{{ message }}</p>
+  {% if action_label and action_href %}<p><a href="{{ action_href }}">{{ action_label }}</a></p>{% endif %}
+</div>
+{%- endmacro %}
+
+{% macro filter_bar(action="", method="get") -%}
+<form class="filter-bar" action="{{ action }}" method="{{ method }}" role="search">
+  {{ caller() }}
+</form>
+{%- endmacro %}
+
+{% macro kv_list(items) -%}
+<dl class="kv-list">
+  {% for item in items %}
+  <dt>{{ item.label }}</dt>
+  <dd>{{ item.value }}</dd>
+  {% endfor %}
+</dl>
+{%- endmacro %}
+
+{% macro json_viewer(payload, label="Details", open=False) -%}
+<details{% if open %} open{% endif %}>
+  <summary>{{ label }}</summary>
+  <pre>{{ payload | json_pretty }}</pre>
+</details>
+{%- endmacro %}
+
+{% macro progress(value, maximum=100, label="Progress") -%}
+<progress value="{{ value }}" max="{{ maximum }}" aria-label="{{ label }}">{{ value }} / {{ maximum }}</progress>
+{%- endmacro %}
+
+{% macro tabs(items, selected=None, label="Sections") -%}
+<div class="tabs" role="tablist" aria-label="{{ label }}">
+  {% for item in items %}
+  <button type="button" role="tab" id="mw-tab-{{ item.key }}"
+          aria-controls="mw-panel-{{ item.key }}"
+          aria-selected="{{ 'true' if item.key == selected else 'false' }}"
+          tabindex="{{ '0' if item.key == selected else '-1' }}">{{ item.label }}</button>
+  {% endfor %}
+</div>
+{%- endmacro %}
+
+{% macro drawer(drawer_id, title, open=False) -%}
+<aside class="drawer" id="{{ drawer_id }}" role="complementary"
+       aria-labelledby="{{ drawer_id }}-title"{% if not open %} hidden{% endif %}>
+  <h2 id="{{ drawer_id }}-title">{{ title }}</h2>
+  {{ caller() }}
+</aside>
+{%- endmacro %}
+
+{% macro dialog(dialog_id, title) -%}
+<dialog id="{{ dialog_id }}" aria-modal="true" aria-labelledby="{{ dialog_id }}-title">
+  <h2 id="{{ dialog_id }}-title">{{ title }}</h2>
+  {{ caller() }}
+</dialog>
+{%- endmacro %}
+
+{% macro toast_region() -%}
+<div class="toast-region" id="mw-toast-region" role="status" aria-live="polite" aria-atomic="true"></div>
+{%- endmacro %}
+
+{% macro tooltip(text, description) -%}
+<span class="tooltip" tabindex="0" title="{{ description }}" aria-label="{{ text }}: {{ description }}">{{ text }}</span>
+{%- endmacro %}
+
+{% macro pagination(previous_href=None, next_href=None, summary=None) -%}
+<nav class="pagination" aria-label="Pagination">
+  {% if previous_href %}<a href="{{ previous_href }}" rel="prev">Previous</a>
+  {% else %}<span class="muted">Previous</span>{% endif %}
+  {% if summary %}<span class="muted">{{ summary }}</span>{% endif %}
+  {% if next_href %}<a href="{{ next_href }}" rel="next">Next</a>
+  {% else %}<span class="muted">Next</span>{% endif %}
+</nav>
+{%- endmacro %}
+
+{% macro chart_container(chart_id, title, description) -%}
+{# The chart is decoration; the caller's table alternative carries the same figures, so a reader
+   who cannot see the chart loses nothing (UI standards §5, §7). #}
+<figure class="chart" id="{{ chart_id }}">
+  <figcaption>{{ title }}</figcaption>
+  <p class="muted">{{ description }}</p>
+  {{ caller() }}
+</figure>
+{%- endmacro %}
+
+{% macro telemetry_bar(stream_url="") -%}
+{% with telemetry_stream_url = stream_url %}{% include "mirrorwall/telemetry_bar.html" %}{% endwith %}
+{%- endmacro %}

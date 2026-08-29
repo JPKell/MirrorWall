@@ -1,1 +1,34 @@
-<!-- TODO: implement per docs/packages/mirrorwall/development-plan.md -->
+{# mirrorwall/telemetry_bar.html — a fixed-width readout of a generic telemetry payload.
+
+   Every field starts as an em dash, and the JS module replaces it only where a value was
+   actually reported. It never renders 0 for an absent reading (UI standards §3): a machine that
+   could not measure its GPU temperature did not measure it as zero degrees. #}
+<div class="telemetry-bar" id="mw-telemetry-bar" aria-label="System telemetry"
+     data-telemetry-url="{{ telemetry_stream_url | default('') }}">
+  <span class="telemetry-field" data-group="cpu">
+    <span class="telemetry-label">CPU</span>
+    <span class="telemetry-value telemetry-value--percent" data-field="cpu_percent">—</span>
+    <span class="telemetry-value telemetry-value--temp" data-field="cpu_temperature_c">—</span>
+  </span>
+  <span class="telemetry-sep" aria-hidden="true"></span>
+  <span class="telemetry-field" data-group="ram">
+    <span class="telemetry-label">RAM</span>
+    <span class="telemetry-value" data-field="ram_used_bytes">—</span>
+    <span class="telemetry-unit">/</span>
+    <span class="telemetry-value" data-field="ram_total_bytes">—</span>
+  </span>
+  <span class="telemetry-sep" aria-hidden="true"></span>
+  <span class="telemetry-field" data-group="gpu">
+    <span class="telemetry-label">GPU</span>
+    <span class="telemetry-value telemetry-value--percent" data-field="gpu_utilization_percent">—</span>
+    <span class="telemetry-value telemetry-value--temp" data-field="gpu_temperature_c">—</span>
+    <span class="telemetry-value telemetry-value--power" data-field="gpu_power_watts">—</span>
+  </span>
+  <span class="telemetry-sep" aria-hidden="true"></span>
+  <span class="telemetry-field" data-group="vram">
+    <span class="telemetry-label">VRAM</span>
+    <span class="telemetry-value" data-field="gpu_vram_used_bytes">—</span>
+    <span class="telemetry-unit">/</span>
+    <span class="telemetry-value" data-field="gpu_vram_total_bytes">—</span>
+  </span>
+</div>

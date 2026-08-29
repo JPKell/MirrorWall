@@ -1,1 +1,23 @@
-/* TODO: implement per docs/packages/mirrorwall/development-plan.md */
+/* mirrorwall/charts.css — the chart container.
+ *
+ * A chart is decoration over a table that carries the same figures, so a reader who cannot see it
+ * loses nothing (UI standards §5, §7). Every colour is a token, which is what lets the theme
+ * switch re-theme a chart without redrawing it. */
+
+.chart { margin: var(--mw-space-4) 0; }
+.chart figcaption { font-weight: 600; }
+.chart-surface {
+  width: 100%;
+  border-bottom: 1px solid var(--mw-border);
+  border-left: 1px solid var(--mw-border);
+}
+.chart .axis { stroke: var(--mw-border); stroke-width: 1; }
+.chart .series-1 { fill: var(--mw-chart-1); stroke: var(--mw-chart-1); }
+.chart .series-2 { fill: var(--mw-chart-2); stroke: var(--mw-chart-2); }
+.chart .series-3 { fill: var(--mw-chart-3); stroke: var(--mw-chart-3); }
+.chart .series-4 { fill: var(--mw-chart-4); stroke: var(--mw-chart-4); }
+.chart .series-5 { fill: var(--mw-chart-5); stroke: var(--mw-chart-5); }
+.chart .series-6 { fill: var(--mw-chart-6); stroke: var(--mw-chart-6); }
+/* 11px is the small-label size from UI standards §2 and the floor for any text in the UI. */
+.chart .label { fill: var(--mw-text-muted); font-size: 11px; }
+.chart-table { margin-top: var(--mw-space-2); }

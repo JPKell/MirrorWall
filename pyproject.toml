@@ -24,6 +24,10 @@ dependencies = [
     "setspec>=0.4,<0.5",
     "jinja2>=3.1,<4",
     "starlette>=0.37,<1",
+    # sse_response dispatches every call into the synchronous EventSource with
+    # anyio.to_thread.run_sync (ADR-0003 §6-8). Starlette pulls anyio in transitively, but a
+    # module this package imports directly is declared directly.
+    "anyio>=4,<5",
 ]
 
 [project.optional-dependencies]
@@ -47,6 +51,13 @@ path = "src/mirrorwall/__about__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/mirrorwall"]
+# Templates, CSS, JS, icons and the asset manifest are package data, not source. Hatchling
+# includes every non-Python file under a listed package by default; these patterns are stated
+# explicitly so a future exclude cannot silently drop the half of this package that is not Python.
+artifacts = [
+    "src/mirrorwall/templates/**",
+    "src/mirrorwall/static/**",
+]
 
 [tool.ruff]
 line-length = 100
@@ -67,6 +78,8 @@ convention = "google"
 python_version = "3.12"
 strict = true
 warn_unused_configs = true
+mypy_path = "src"
+explicit_package_bases = true
 
 [tool.pytest.ini_options]
 addopts = "-m 'not live and not performance'"
@@ -82,5 +95,7 @@ source = ["src/mirrorwall"]
 branch = true
 
 [tool.coverage.report]
-fail_under = 85
+# Shared packages carry a 95% floor, not the 85% applications use: three applications inherit
+# every line here, and a bug in a component is a bug in all of them.
+fail_under = 95
 show_missing = true

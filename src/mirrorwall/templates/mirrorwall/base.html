@@ -1,1 +1,74 @@
-<!-- TODO: implement per docs/packages/mirrorwall/development-plan.md -->
+{# mirrorwall/base.html — the shell every application's pages extend.
+
+   Slots, not pages (spec §3): this template renders whatever product name, navigation and footer
+   the application supplies, and contains no application vocabulary of its own. An application
+   extends it, overrides `content`, and supplies `product_name`, `product_version` and `nav_items`.
+
+   The theme bootstrap is inline and tiny on purpose (UI standards §9): it must run before first
+   paint or a dark-mode reader sees a white flash, and an external file is a second request that
+   can lose that race. #}
+<!doctype html>
+<html lang="{{ language | default('en') }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ product_name }}{% endblock %}</title>
+  <script>
+    (function () {
+      try {
+        var stored = window.localStorage.getItem({{ theme_storage_key | tojson }});
+        if (stored === "light" || stored === "dark") {
+          document.documentElement.setAttribute("data-theme", stored);
+        }
+      } catch (error) { /* private mode: the system theme is a correct answer */ }
+    })();
+  </script>
+  <link rel="stylesheet" href="{{ 'css/tokens.css' | asset_url }}">
+  <link rel="stylesheet" href="{{ 'css/reset.css' | asset_url }}">
+  <link rel="stylesheet" href="{{ 'css/layout.css' | asset_url }}">
+  <link rel="stylesheet" href="{{ 'css/components.css' | asset_url }}">
+  <link rel="stylesheet" href="{{ 'css/tables.css' | asset_url }}">
+  <link rel="stylesheet" href="{{ 'css/charts.css' | asset_url }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header>
+    <div class="masthead">
+      <h1>{{ product_name }}{% if product_version %} <span class="version">v{{ product_version }}</span>{% endif %}</h1>
+      {% block header_extra %}{% endblock %}
+      <div class="field">
+        <label for="mw-theme-select">Theme</label>
+        <select id="mw-theme-select" data-theme-select data-theme-storage-key="{{ theme_storage_key }}">
+          <option value="system">System</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </div>
+    </div>
+    {% block navigation %}
+    {% if nav_items %}
+    <nav aria-label="Primary">
+      <ul>
+        {% for item in nav_items %}
+        <li><a href="{{ item.href }}"{% if item.key == page %} aria-current="page"{% endif %}>{{ item.label }}</a></li>
+        {% endfor %}
+      </ul>
+    </nav>
+    {% endif %}
+    {% endblock %}
+    {% block telemetry %}
+    {% if show_telemetry_bar %}{% include "mirrorwall/telemetry_bar.html" %}{% endif %}
+    {% endblock %}
+  </header>
+  <main id="content">
+    {% block content %}{% endblock %}
+  </main>
+  {% block footer %}
+  {% if footer_text %}<footer>{{ footer_text }}</footer>{% endif %}
+  {% endblock %}
+  <script src="{{ 'js/theme.js' | asset_url }}" defer></script>
+  <script src="{{ 'js/table.js' | asset_url }}" defer></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

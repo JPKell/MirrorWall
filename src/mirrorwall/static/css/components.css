@@ -1,1 +1,192 @@
-/* TODO: implement per docs/packages/mirrorwall/development-plan.md */
+/* mirrorwall/components.css — cards, badges, forms, buttons, drawers, dialogs, toasts.
+ *
+ * UI standards §4.1 is load-bearing here: colour is never the only signal. Every status carries
+ * its own word as well as its colour, and its border carries it again in monochrome and in
+ * forced-colours mode. */
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: var(--mw-space-4);
+  margin: var(--mw-space-4) 0;
+  padding: 0;
+  list-style: none;
+}
+.card {
+  background: var(--mw-surface);
+  border: 1px solid var(--mw-border);
+  border-radius: var(--mw-radius-md);
+  padding: var(--mw-space-4);
+}
+.card dt, .card .card-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--mw-text-muted);
+}
+.card dd, .card .card-value {
+  margin: var(--mw-space-1) 0 0;
+  font-size: 26px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.card .card-note { font-size: 12px; color: var(--mw-text-muted); }
+
+.empty-state, .error-state, .warning-state, .notice {
+  border: 1px solid var(--mw-border);
+  background: var(--mw-surface);
+  border-radius: var(--mw-radius-md);
+  padding: var(--mw-space-4) var(--mw-space-6);
+  margin-top: var(--mw-space-4);
+}
+.empty-state { border-style: dashed; }
+.error-state { border-color: var(--mw-danger); }
+.warning-state { border-color: var(--mw-warning); }
+.notice { border-color: var(--mw-success); }
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mw-space-3);
+  align-items: flex-end;
+  background: var(--mw-surface);
+  border: 1px solid var(--mw-border);
+  border-radius: var(--mw-radius-md);
+  padding: var(--mw-space-3) var(--mw-space-4);
+  margin: var(--mw-space-4) 0;
+}
+.field { display: flex; flex-direction: column; gap: var(--mw-space-1); }
+.field label { font-size: 12px; font-weight: 600; color: var(--mw-text-muted); }
+.field-inline { flex-direction: row; align-items: center; gap: var(--mw-space-2); }
+.field-hint { font-size: 12px; color: var(--mw-text-muted); }
+.field-error { font-size: 12px; color: var(--mw-danger); }
+
+input, select, textarea {
+  font: inherit;
+  font-size: 13px;
+  color: var(--mw-text);
+  background: var(--mw-surface);
+  /* A control's own boundary is what tells a reader it is a control, so it uses the token that
+     meets WCAG 1.4.11's 3:1 rather than the decorative rule used between table rows. */
+  border: 1px solid var(--mw-border-strong);
+  border-radius: var(--mw-radius-sm);
+  padding: var(--mw-space-2);
+  min-height: 32px;
+}
+button {
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: var(--mw-radius-sm);
+  border: 1px solid var(--mw-border-strong);
+  background: var(--mw-surface);
+  color: var(--mw-text);
+  padding: var(--mw-space-2) var(--mw-space-3);
+  min-height: 32px;
+}
+button[data-variant="primary"] {
+  background: var(--mw-accent);
+  border-color: var(--mw-accent);
+  color: var(--mw-surface);
+}
+:root[data-theme="dark"] button[data-variant="primary"],
+:root:not([data-theme="light"]) button[data-variant="primary"] { color: var(--mw-ink); }
+button[data-variant="danger"] { border-color: var(--mw-danger); color: var(--mw-danger); }
+button[data-variant="quiet"] { border-color: transparent; background: transparent; }
+button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.status, .badge {
+  border: 1px solid currentColor;
+  border-radius: var(--mw-radius-sm);
+  padding: 0 var(--mw-space-2);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.status-neutral { color: var(--mw-text-muted); }
+.status-info { color: var(--mw-info); }
+.status-active { color: var(--mw-accent); }
+.status-success { color: var(--mw-success); }
+.status-danger { color: var(--mw-danger); }
+.status-warning { color: var(--mw-warning); }
+
+.tabs { display: flex; gap: var(--mw-space-3); border-bottom: 1px solid var(--mw-border); }
+.tabs [role="tab"] {
+  border: 0;
+  background: transparent;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  color: var(--mw-text-muted);
+}
+.tabs [role="tab"][aria-selected="true"] {
+  color: var(--mw-text);
+  border-bottom-color: var(--mw-accent);
+  font-weight: 650;
+}
+
+dialog {
+  border: 1px solid var(--mw-border);
+  border-radius: var(--mw-radius-lg);
+  background: var(--mw-surface);
+  color: var(--mw-text);
+  padding: var(--mw-space-6);
+  max-width: 40rem;
+}
+dialog::backdrop { background: rgb(0 0 0 / 45%); }
+
+.drawer {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-end: 0;
+  width: min(28rem, 100vw);
+  background: var(--mw-surface);
+  border-inline-start: 1px solid var(--mw-border);
+  padding: var(--mw-space-6);
+  overflow-y: auto;
+  z-index: 20;
+}
+.drawer[hidden] { display: none; }
+
+.toast-region {
+  position: fixed;
+  inset-block-end: var(--mw-space-4);
+  inset-inline-end: var(--mw-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--mw-space-2);
+  z-index: 30;
+}
+.toast {
+  background: var(--mw-surface);
+  border: 1px solid var(--mw-border-strong);
+  border-radius: var(--mw-radius-md);
+  padding: var(--mw-space-2) var(--mw-space-4);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 15%);
+}
+.toast[data-tone="danger"] { border-color: var(--mw-danger); }
+.toast[data-tone="success"] { border-color: var(--mw-success); }
+
+.tooltip { border-bottom: 1px dotted var(--mw-border-strong); cursor: help; }
+
+.pagination { display: flex; gap: var(--mw-space-2); align-items: center; margin: var(--mw-space-4) 0; }
+
+.kv-list { display: grid; grid-template-columns: max-content 1fr; gap: var(--mw-space-1) var(--mw-space-4); margin: 0; }
+.kv-list dt { color: var(--mw-text-muted); font-size: 12px; }
+.kv-list dd { margin: 0; }
+
+details pre, pre {
+  overflow-x: auto;
+  background: var(--mw-surface-alt);
+  border: 1px solid var(--mw-border);
+  border-radius: var(--mw-radius-sm);
+  padding: var(--mw-space-3);
+  font-family: var(--mw-font-data);
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+code { font-family: var(--mw-font-data); }
+
+progress { width: 100%; }
+
+.icon { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2; vertical-align: -0.125em; }

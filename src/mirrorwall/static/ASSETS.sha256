@@ -1,0 +1,19 @@
+# mirrorwall static asset digests.
+# Regenerate with:  (cd src/mirrorwall/static && find . -type f ! -name ASSETS.sha256 | sort | xargs sha256sum > ASSETS.sha256)
+# Verified by tests/unit/test_assets.py, which recomputes every line and fails on a mismatch.
+23df2e734fd7b5017c1632b500bd06e9ea330d341c8baa01604af3bd923a8612  ./css/charts.css
+dbe4de4f9969ac32efb57abe41c78c542fdaf3909e084336fa461d597cdacc04  ./css/components.css
+705f81958d1e69fbd4dc32fe1a0a2252529576ff2dbe06264408ab06cefd1f2c  ./css/layout.css
+d9a6472d22b65dc5cf80cfa857001b977adab58f933443b29a08dc3a0b814ccb  ./css/reset.css
+6a616241846cd5d8270b54ed5d677bfb95c633fd94ee1f93b0a9ac27285d93de  ./css/tables.css
+a08291a210c00e00a0444dc50253fc7848b8a9e57d8139951c2f93dc1bc63b5b  ./css/tokens.css
+2d5db4f142881e3068a61ebaa53fb400b7c9841078c4fc2c77381b1303ab3bc6  ./css/tokens.json
+fca689b3dbdbf52f4af0feac396259c2876f0efaf32aa4fcd442f27ee5f8ff8a  ./icons/sprite.svg
+c57837bf105587fbd8e01176d0173243df5df2ab1b4c469b2025a4bcf2a12254  ./js/charts.js
+e983bbb84541acd28e8a33b95af764d80335bcfaeac37baa93f90099ceb11efd  ./js/dialog.js
+4dfc800ca7fa590d06207bcf2ead06660a4453452bff801f131dbba744fec9c4  ./js/drawer.js
+c57837bf105587fbd8e01176d0173243df5df2ab1b4c469b2025a4bcf2a12254  ./js/sse.js
+1ef442babc82d822ac105bf31087e1a1c2dd3e11ea3ce0fbcb840a8203917613  ./js/table.js
+c57837bf105587fbd8e01176d0173243df5df2ab1b4c469b2025a4bcf2a12254  ./js/telemetry.js
+ce155ac4d187c911337bf8f6d8d6991ae6121db0469d492803b05db23b66dddf  ./js/theme.js
+9f6280038c69be935bf574ee6f791118fd221a9d3223d0bd0dc2def35a3ce365  ./js/toast.js
