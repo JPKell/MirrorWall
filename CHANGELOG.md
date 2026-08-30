@@ -10,6 +10,12 @@ packaging and release standards §3.
 ## [0.2.0] — 2026-08-29
 
 ### Changed
+- **`starlette>=1.3.1,<2`**, widened from `>=0.37,<1`. Two reasons, either sufficient. The 0.x line
+  carries PYSEC-2026-161, -248, -249, -2280 and -2281, none of which has a fix below 1.3.1, so
+  `pip-audit` fails the security gate against any lock the old cap allows. And the cap was wrong on
+  its own terms: FreeWeight and LoadCoach — the two applications this package exists to serve —
+  already run starlette 1.6 under fastapi 0.141, so `<1` made `mirrorwall` un-coinstallable with
+  its own consumers. The full suite passes unchanged on 1.6.0; no source change was needed.
 - CI installs from committed, hash-verified lockfiles (`requirements/ci.lock`,
   `requirements/release.lock`) rather than an editable checkout, per Packaging Standards §4;
   `pip-audit` audits those locks instead of an empty environment; `release.yml` gains the `pypi`
@@ -17,6 +23,9 @@ packaging and release standards §3.
   chain pinned byte-for-byte to the one the dry run proves. `[tool.coverage.run] source` now names
   the importable package rather than `src/mirrorwall`, because a non-editable install reports 0 %
   against a path-based source.
+
+  The `dev` extra moves to `pytest>=9.0.3,<10`, matching BaseAiCore, SetSpec, ModelRack and
+  SweatMeter: PYSEC-2026-1845 affects pytest through 9.0.2 and failed the security job.
 
   `ci.lock` could not be compiled at all until `setspec 0.4.0` was published: this package requires
   `setspec>=0.4,<0.5`, PyPI carried 0.3.0, and every CI job that installed from an index failed at
