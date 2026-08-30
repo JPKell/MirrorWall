@@ -5,7 +5,30 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 [Semantic Versioning](https://semver.org/), pre-1.0 per
 packaging and release standards §3.
 
+## [Unreleased]
+
 ## [0.2.0] — 2026-08-29
+
+### Changed
+- CI installs from committed, hash-verified lockfiles (`requirements/ci.lock`,
+  `requirements/release.lock`) rather than an editable checkout, per Packaging Standards §4;
+  `pip-audit` audits those locks instead of an empty environment; `release.yml` gains the `pypi`
+  deployment environment, the manual TestPyPI dry run required before a first release, and a build
+  chain pinned byte-for-byte to the one the dry run proves. `[tool.coverage.run] source` now names
+  the importable package rather than `src/mirrorwall`, because a non-editable install reports 0 %
+  against a path-based source.
+
+  `ci.lock` could not be compiled at all until `setspec 0.4.0` was published: this package requires
+  `setspec>=0.4,<0.5`, PyPI carried 0.3.0, and every CI job that installed from an index failed at
+  the `pip install` step for that reason. Those jobs had never been green.
+
+### Added
+- `tests/contract/test_public_api.py`: the published surface asserted in both directions, every
+  name resolved, `py.typed` shipped, and the templates, stylesheets, icon sprite and
+  `PACKAGE_TEMPLATE_DIR`/`PACKAGE_STATIC_DIR` roots asserted against the *installed* package. A
+  wheel that drops package data imports perfectly and then fails at a consumer's first render, so
+  the check has to run against the install rather than the checkout. The `contracts` CI job
+  collected nothing before this and failed with pytest's exit code 5.
 
 ### Added
 - Phase 1: design tokens, the layout shell and the core components, extracted from FreeWeight's
