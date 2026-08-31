@@ -13,6 +13,8 @@ import re
 import pytest
 from jinja2 import Environment
 
+from mirrorwall import PACKAGE_STATIC_DIR
+
 MACROS = '{% from "mirrorwall/components.html" import '
 THEMES = ("light", "dark")
 
@@ -143,6 +145,73 @@ def test_empty_state_and_pagination_and_kv_list(environment: Environment) -> Non
     )
     assert "<dt>Digest</dt>" in kv
     assert "<dd>sha256:abc</dd>" in kv
+
+
+def test_kv_list_renders_an_item_with_an_href_as_a_real_anchor(environment: Environment) -> None:
+    """The M5C-6 lesson: a value that is a link must never be HTML smuggled through the escaper."""
+    html = render(
+        environment,
+        MACROS + "kv_list %}{{ kv_list(items) }}",
+        items=[
+            {"label": "Explanation", "value": "decision 42", "href": "/routing/42"},
+            {"label": "Digest", "value": "sha256:abc"},
+        ],
+    )
+    assert '<a href="/routing/42">decision 42</a>' in html
+    assert "<dd>sha256:abc</dd>" in html
+    assert "&lt;a" not in html
+
+
+def test_kv_list_markup_in_label_and_value_stays_inert_even_with_an_href(
+    environment: Environment,
+) -> None:
+    """Only the href becomes an attribute; label and value are text, never markup."""
+    html = render(
+        environment,
+        MACROS + "kv_list %}{{ kv_list(items) }}",
+        items=[
+            {
+                "label": "<b>bold</b>",
+                "value": '<script>alert("x")</script>',
+                "href": "/safe",
+            }
+        ],
+    )
+    assert "<b>" not in html
+    assert "<script>" not in html
+    assert "&lt;script&gt;" in html
+    assert '<a href="/safe">' in html
+
+
+@pytest.mark.parametrize(
+    "hostile",
+    ["javascript:alert(1)", "JAVASCRIPT:alert(1)", "java\tscript:alert(1)", "data:text/html,x"],
+)
+def test_kv_list_neutralizes_a_hostile_href_to_plain_text(
+    environment: Environment, hostile: str
+) -> None:
+    """A `javascript:` href is refused, and the value still renders — as text, with no anchor."""
+    html = render(
+        environment,
+        MACROS + "kv_list %}{{ kv_list(items) }}",
+        items=[{"label": "Explanation", "value": "decision 42", "href": hostile}],
+    )
+    assert "<a " not in html
+    assert "javascript:" not in html.lower().replace("\t", "")
+    assert "<dd>decision 42</dd>" in html
+
+
+def test_kv_list_values_carry_a_wrapping_rule_for_unbreakable_tokens() -> None:
+    """M5C-11: a 64-character fingerprint in a ``<dd>`` must wrap rather than widen the page.
+
+    Both LoadCoach pages carry a commented stopgap naming exactly this rule; it is deletable
+    only while ``components.css`` holds the rule itself.
+    """
+    css = (PACKAGE_STATIC_DIR / "css" / "components.css").read_text()
+    rule = re.search(r"\.kv-list dd\s*\{([^}]*)\}", css)
+    assert rule is not None
+    assert "overflow-wrap" in rule.group(1)
+    assert "anywhere" in rule.group(1)
 
 
 def test_tabs_expose_selection_and_roving_tabindex(environment: Environment) -> None:

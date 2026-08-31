@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import posixpath
+import re
 from datetime import datetime, timedelta
 from typing import Any, Final
 
@@ -33,6 +34,7 @@ __all__ = [
     "json_pretty",
     "measurement",
     "register_filters",
+    "safe_href",
     "timestamp",
     "truncate_middle",
 ]
@@ -227,6 +229,44 @@ def asset_url(path: str, *, prefix: str = STATIC_URL_PREFIX) -> str:
     return f"{prefix}/{normalized}"
 
 
+_SAFE_HREF_SCHEMES: Final = frozenset({"http", "https", "mailto"})
+"""Schemes an ``href`` from data may carry. Everything else is refused, not escaped —
+``javascript:`` is dangerous *because* it is a perfectly well-formed attribute value."""
+
+_URL_SCHEME: Final = re.compile(r"^([a-zA-Z][a-zA-Z0-9+.-]*):")
+"""RFC 3986 scheme syntax. A colon later in a relative path (``/a/b:c``) is not a scheme."""
+
+
+def safe_href(value: object) -> str | None:
+    """Return ``value`` as a link target, or ``None`` when it must not become one.
+
+    The escaper cannot help here: ``javascript:alert(1)`` is a perfectly well-formed attribute
+    value, so an ``href`` built from data needs a scheme decision, not escaping. Relative URLs
+    and the :data:`_SAFE_HREF_SCHEMES` pass; anything else — ``javascript:``, ``data:``,
+    ``vbscript:``, a non-string, an empty string — is refused with ``None``, which a macro
+    renders as the plain value with no anchor: neutralized, never smuggled.
+
+    Tab, newline and carriage return are stripped *before* the scheme check, because browsers
+    strip them when parsing a URL — ``java\\tscript:`` would otherwise pass as scheme-less text
+    and execute as ``javascript:`` in the attribute.
+
+    Args:
+        value: The would-be link target, from data.
+
+    Returns:
+        The cleaned URL string when it is safe to place in an ``href`` attribute, else ``None``.
+    """
+    if not isinstance(value, str):
+        return None
+    cleaned = re.sub(r"[\t\r\n]", "", value).strip()
+    if not cleaned:
+        return None
+    matched = _URL_SCHEME.match(cleaned)
+    if matched is None:
+        return cleaned
+    return cleaned if matched.group(1).lower() in _SAFE_HREF_SCHEMES else None
+
+
 def register_filters(filters: dict[str, Any], tests: dict[str, Any]) -> None:
     """Install every shared filter and test onto a Jinja environment's registries.
 
@@ -243,6 +283,7 @@ def register_filters(filters: dict[str, Any], tests: dict[str, Any]) -> None:
             "truncate_middle": truncate_middle,
             "json_pretty": json_pretty,
             "asset_url": asset_url,
+            "safe_href": safe_href,
         }
     )
     tests["supported"] = is_supported_test

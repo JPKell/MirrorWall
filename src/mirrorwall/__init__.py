@@ -23,6 +23,7 @@ from mirrorwall.filters import (
     json_pretty,
     measurement,
     register_filters,
+    safe_href,
     timestamp,
     truncate_middle,
 )
@@ -109,6 +110,7 @@ __all__ = [
     "paginated_response",
     "parse_last_event_id",
     "register_filters",
+    "safe_href",
     "sse_response",
     "timestamp",
     "truncate_middle",

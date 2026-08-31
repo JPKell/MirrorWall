@@ -7,6 +7,24 @@ packaging and release standards §3.
 
 ## [Unreleased]
 
+## [0.2.1] — 2026-08-31
+
+The two items LoadCoach's M5 verification recorded against this package (M5C-6, M5C-11), both of
+which its pages carry commented stopgaps for.
+
+### Added
+- **`kv_list` items may carry an `href`**, rendering the value as a real anchor. The escaping
+  contract holds: label and value stay escaped text whatever they contain — never HTML through
+  the escaper, the M5 `| safe` lesson — and only the `href` becomes an attribute, through the new
+  `safe_href` filter. `safe_href` (also published at package level — a deliberate contract
+  addition to spec §7's surface) allowlists relative URLs and `http`/`https`/`mailto`, strips the
+  characters browsers strip before scheme parsing (`java\tscript:` is `javascript:` to a
+  browser), and refuses everything else with `None`, which the macro renders as the plain value
+  with no anchor: a `javascript:` href is neutralized, never smuggled (M5C-6).
+- **`.kv-list dd` wraps unbreakable tokens** (`overflow-wrap: anywhere` in `components.css`): a
+  64-character machine fingerprint or a canonical model ID no longer widens the page at 375 px.
+  Both LoadCoach stopgaps become deletable once this resolves (M5C-11).
+
 ## [0.2.0] — 2026-08-29
 
 ### Changed

@@ -172,7 +172,9 @@ dialog::backdrop { background: rgb(0 0 0 / 45%); }
 
 .kv-list { display: grid; grid-template-columns: max-content 1fr; gap: var(--mw-space-1) var(--mw-space-4); margin: 0; }
 .kv-list dt { color: var(--mw-text-muted); font-size: 12px; }
-.kv-list dd { margin: 0; }
+/* overflow-wrap: a 64-character fingerprint or canonical ID is one unbreakable token; without a
+   wrapping rule it widens the whole page at narrow widths (LoadCoach M5C-11). */
+.kv-list dd { margin: 0; overflow-wrap: anywhere; }
 
 details pre, pre {
   overflow-x: auto;

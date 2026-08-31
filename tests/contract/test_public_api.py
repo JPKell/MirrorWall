@@ -68,6 +68,7 @@ _PUBLISHED_NAMES = frozenset(
         "paginated_response",
         "parse_last_event_id",
         "register_filters",
+        "safe_href",
         "sse_response",
         "timestamp",
         "truncate_middle",

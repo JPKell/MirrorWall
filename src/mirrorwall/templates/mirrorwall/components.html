@@ -120,10 +120,18 @@
 {%- endmacro %}
 
 {% macro kv_list(items) -%}
+{#- An item may carry an optional `href`, making its value an anchor. The value and label stay
+    escaped text either way — never HTML — and the href goes through `safe_href`, which refuses
+    javascript: and every other unsafe scheme; a refused href renders as the plain value. -#}
 <dl class="kv-list">
   {% for item in items %}
   <dt>{{ item.label }}</dt>
+  {% set resolved_href = (item.href | safe_href) if (item.href is defined and item.href) else none %}
+  {% if resolved_href is not none %}
+  <dd><a href="{{ resolved_href }}">{{ item.value }}</a></dd>
+  {% else %}
   <dd>{{ item.value }}</dd>
+  {% endif %}
   {% endfor %}
 </dl>
 {%- endmacro %}

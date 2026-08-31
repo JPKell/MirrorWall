@@ -2,7 +2,7 @@
 # Regenerate with:  (cd src/mirrorwall/static && find . -type f ! -name ASSETS.sha256 | sort | xargs sha256sum > ASSETS.sha256)
 # Verified by tests/unit/test_assets.py, which recomputes every line and fails on a mismatch.
 23df2e734fd7b5017c1632b500bd06e9ea330d341c8baa01604af3bd923a8612  ./css/charts.css
-dbe4de4f9969ac32efb57abe41c78c542fdaf3909e084336fa461d597cdacc04  ./css/components.css
+a6f8b4882ff2f839c56819861edc0598ef9c4c5893d63682719adfcc90bdd5d7  ./css/components.css
 705f81958d1e69fbd4dc32fe1a0a2252529576ff2dbe06264408ab06cefd1f2c  ./css/layout.css
 d9a6472d22b65dc5cf80cfa857001b977adab58f933443b29a08dc3a0b814ccb  ./css/reset.css
 6a616241846cd5d8270b54ed5d677bfb95c633fd94ee1f93b0a9ac27285d93de  ./css/tables.css

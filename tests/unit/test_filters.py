@@ -15,6 +15,7 @@ from mirrorwall.filters import (
     is_supported_test,
     json_pretty,
     measurement,
+    safe_href,
     timestamp,
     truncate_middle,
 )
@@ -124,3 +125,54 @@ def test_asset_url_joins_under_the_static_prefix() -> None:
 def test_asset_url_refuses_to_address_anything_outside_the_static_root(path: str) -> None:
     with pytest.raises(ValueError, match="static root"):
         asset_url(path)
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "/jobs/42",
+        "#section",
+        "?page=2",
+        "../up/one",
+        "https://example.test/models",
+        "http://127.0.0.1:8792/",
+        "mailto:someone@example.test",
+    ],
+)
+def test_safe_href_passes_relative_urls_and_the_allowlisted_schemes(value: str) -> None:
+    assert safe_href(value) == value
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "javascript:alert(1)",
+        "JAVASCRIPT:alert(1)",
+        "JaVaScRiPt:alert(1)",
+        "data:text/html,<script>alert(1)</script>",
+        "vbscript:msgbox(1)",
+        "file:///etc/passwd",
+    ],
+)
+def test_safe_href_refuses_every_scheme_off_the_allowlist(value: str) -> None:
+    """The escaper cannot help: `javascript:` is well-formed attribute text — refuse, not escape."""
+    assert safe_href(value) is None
+
+
+def test_safe_href_strips_the_characters_browsers_strip_before_deciding() -> None:
+    """`java\\tscript:` parses scheme-less here but as `javascript:` in a browser — clean first."""
+    assert safe_href("java\tscript:alert(1)") is None
+    assert safe_href("java\nscript:alert(1)") is None
+    assert safe_href("\t/jobs/42\n") == "/jobs/42"
+
+
+def test_safe_href_refuses_a_non_string_and_an_empty_string() -> None:
+    assert safe_href(None) is None
+    assert safe_href(42) is None
+    assert safe_href("") is None
+    assert safe_href("   ") is None
+
+
+def test_safe_href_does_not_mistake_a_path_colon_for_a_scheme() -> None:
+    """RFC 3986: a scheme is `[a-zA-Z][a-zA-Z0-9+.-]*` — `/a/b:c` has none."""
+    assert safe_href("/models/ollama/qwen@sha256:abc") == "/models/ollama/qwen@sha256:abc"
