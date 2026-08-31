@@ -138,7 +138,10 @@ Rendered HTML fragments, JSON responses, SSE streams, static asset URLs, health 
 ## 10. Data ownership
 
 None. It renders what it is given and stores nothing beyond the viewer's `localStorage` theme and
-table preferences.
+table preferences. The keys are contract: the theme lives under `DEFAULT_THEME_STORAGE_KEY`
+(`mirrorwall-theme`) unless the application configures its own, and `table.js` keeps column
+visibility under `mirrorwall-columns:<table id>` — an application that swaps its own table script
+for this one orphans its old keys silently rather than migrating them.
 
 ## 11. Public contracts
 
