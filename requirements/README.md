@@ -27,6 +27,14 @@ prepared during M4 and held unpublished (`M4_HANDOFF.md`, entries WDB3, SS6, LCX
 from an index. `setspec 0.4.0` published on 2026-08-29; this lock was compiled immediately after,
 and `ci.yml` moved off editable installs in the same change.
 
+## Why `setspec` moved to 0.6.0 at 0.2.2
+
+The `<0.5` cap came off in 0.2.2 (`setspec>=0.4,<0.7`), so this lock was recompiled with
+`-P setspec -P baseaicore` — the second because `setspec` 0.6.0 requires `baseaicore>=0.4.1`, and
+without it the resolver quietly falls back to `setspec` 0.4.0 rather than failing. Those two pins
+are the only ones that moved; everything else was left where it was, which is what re-running
+`pip-compile` without `--upgrade` guarantees.
+
 ## Regenerating
 
 Run after any change to `pyproject.toml`'s dependencies or `dev` extra, and commit the result:

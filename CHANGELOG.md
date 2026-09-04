@@ -7,6 +7,20 @@ packaging and release standards §3.
 
 ## [Unreleased]
 
+## [0.2.2] — 2026-09-04
+
+### Changed
+- **`setspec>=0.4,<0.7`**, widened from `<0.5`. The cap held the whole suite still: `mirrorwall` is
+  a dependency of all four applications, so no application could move past `setspec` 0.4 while it
+  stood — and two rows now need past it, PromptCadence P6 for `governance.egress_decision` (0.5)
+  and FreeWeight 1.1 for `capability.evidence` 1.1 (0.6). It protected nothing in return. This
+  package imports three names from `setspec` — `GeneratorInfo`, `SchemaVersion` and
+  `dump_envelope`, all in `sse.py` — and all three are v1.0 payload surface, frozen under ADR-0009;
+  0.5.0 and 0.6.0 are additive over it. The full suite passes unchanged against `setspec` 0.6.0 and
+  no source change was needed, the same shape as 0.2.0's starlette widen. `requirements/ci.lock`
+  moves to `setspec` 0.6.0 with it — and to `baseaicore` 0.4.1, which `setspec` 0.6.0 requires — so
+  CI tests the versions a consumer will now resolve. No other pin in the lock moved.
+
 ## [0.2.1] — 2026-08-31
 
 The two items LoadCoach's M5 verification recorded against this package (M5C-6, M5C-11), both of
