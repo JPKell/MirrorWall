@@ -4,6 +4,7 @@
 ([ADR-0011](../../adr/0011-shared-package-boundaries.md)). FreeWeight adopts it in FreeWeight
 Phase 12.
 **Target:** `mirrorwall 0.2.0` by the end of Phase 3.
+**Reached; `0.2.2` is published** — the pin widen of row E5, with no behaviour change.
 
 **Precondition for starting:** FreeWeight has a complete, polished UI in production use, and LoadCoach
 needs the same shell, components and streaming. The components have therefore been designed against
@@ -85,7 +86,7 @@ loses nothing.
 * Frame shape: the SetSpec event envelope with the event as `payload`, except `event: token`, which is
   bare — the one documented exception ([ADR-0025 §3](../../adr/0025-envelope-boundaries.md)).
 * `middleware.py` also carries `HostValidationMiddleware` and `CsrfMiddleware`
-  ([ADR-0026](../../adr/0026-local-http-hardening.md)), shared so all three applications behave
+  ([ADR-0026](../../adr/0026-local-http-hardening.md)), shared so all four applications behave
   identically and the check runs before routing and before authentication.
 * `static.py`: `mount_static`, `asset_url` with content hashing, cache headers, containment checks.
 * `health.py`: `ComponentStatus`, `ComponentHealth`, `health_payload`, `worst_status`.

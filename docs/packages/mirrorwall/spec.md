@@ -1,15 +1,16 @@
 # MirrorWall — Specification
 
 **Type:** Python package (web/UI toolkit) · **Import/distribution name:** `mirrorwall` · **Layer:** 3
-**Status:** Specified, not implemented. **Extraction timing:** LoadCoach Phase 4, from FreeWeight's
-web layer ([ADR-0011](../../adr/0011-shared-package-boundaries.md)).
+**Status:** Implemented and published as `mirrorwall 0.2.2`. **Extracted at:** LoadCoach Phase 4,
+from FreeWeight's web layer ([ADR-0011](../../adr/0011-shared-package-boundaries.md)); adopted by
+FreeWeight at its Phase 12, and by PromptCadence from its first web layer.
 **Decision records:** [ADR-0020](../../adr/0020-ui-rendering-strategy.md), [ADR-0004](../../adr/0004-sse-vs-websockets.md).
 
 ---
 
 ## 1. Purpose
 
-Let three applications look and behave like one product family without sharing a single page. It
+Let four applications look and behave like one product family without sharing a single page. It
 supplies the tokens, layout, components, streaming plumbing and JSON conventions that all three need;
 it knows nothing about benchmarks, routing or content.
 
@@ -63,7 +64,7 @@ application's FastAPI; declared as a dependency for the middleware and response 
 
 ## 6. Consumers
 
-FreeWeight, LoadCoach, IdeaPress.
+FreeWeight, LoadCoach, IdeaPress, PromptCadence.
 
 ## 7. Public API
 
@@ -106,7 +107,7 @@ class HostValidationMiddleware:
     """Rejects a request whose ``Host`` is not allowed, with 421, before routing and before auth.
 
     Loopback binds allow ``localhost``, ``127.0.0.1``, ``[::1]`` and the bound address; other binds
-    require an explicit list. Shared here so all three applications behave identically — this is what
+    require an explicit list. Shared here so all four applications behave identically — this is what
     closes DNS rebinding against an unauthenticated loopback service
     (:doc:`ADR-0026 §1 <../../adr/0026-local-http-hardening>`).
     """
