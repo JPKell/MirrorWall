@@ -1,6 +1,6 @@
 # MirrorWall
 
-Design tokens, layout, component macros, SSE and JSON/error envelope helpers so three applications look like one family without sharing a page.
+Design tokens, layout, component macros, SSE and JSON/error envelope helpers so the suite's applications look like one family without sharing a page.
 
 **Status:** Phases 1 and 2 implemented at `0.2.0` — design tokens, the layout shell, the component
 macros, template filters, JSON and error envelopes, request-ID/Host/CSRF middleware, SSE with a
