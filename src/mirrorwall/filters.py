@@ -20,7 +20,7 @@ import re
 from datetime import datetime, timedelta
 from typing import Any, Final
 
-from baseaicore import UNSUPPORTED, is_supported
+from baseaicore import is_supported
 from baseaicore.timeutil import to_rfc3339
 from markupsafe import Markup, escape
 
@@ -65,9 +65,9 @@ def bytes_human(value: object) -> str:
     scaled = float(value)
     for unit in _BYTE_UNITS:
         scaled /= 1024
-        if scaled < 1024 or unit == _BYTE_UNITS[-1]:
+        if scaled < 1024:
             return f"{scaled:.1f} {unit}"
-    raise AssertionError("unreachable: the final unit always returns")  # pragma: no cover
+    return f"{scaled:.1f} {_BYTE_UNITS[-1]}"
 
 
 def duration_human(value: object) -> str:
@@ -124,7 +124,7 @@ def measurement(value: object, reason: str | None = None, unit: str | None = Non
     Returns:
         Escaped markup: an ``<span>`` for an absent value, the escaped number otherwise.
     """
-    if value is None or value is UNSUPPORTED or not is_supported(value):
+    if value is None or not is_supported(value):
         explanation = reason or "not measurable in this environment"
         return Markup(
             '<span class="muted" title="{reason}" aria-label="Unavailable: {reason}">{dash}</span>'

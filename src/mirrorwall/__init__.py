@@ -1,9 +1,9 @@
-"""MirrorWall — the shared UI and web-edge toolkit for the suite's three applications.
+"""MirrorWall — the shared UI and web-edge toolkit for the suite's four applications.
 
 Design tokens, a layout shell, component macros, template filters, JSON and error envelopes, SSE
 plumbing, request-ID, Host-validation and CSRF middleware, static mounting and health
-primitives — so FreeWeight, LoadCoach and IdeaPress look and behave like one product family
-without sharing a single page.
+primitives — so FreeWeight, LoadCoach, IdeaPress and PromptCadence look and behave like one product
+family without sharing a single page.
 
 It knows nothing about benchmarks, routing or content, and a term-scan test enforces that: no
 application vocabulary appears anywhere in this package, in Python, in a template, in a CSS class

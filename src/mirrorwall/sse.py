@@ -1,6 +1,6 @@
 """mirrorwall.sse — server-sent events with a gap-free replay-to-live handoff.
 
-This is the subtlest module in the package, and three applications inherit whatever is here, so
+This is the subtlest module in the package, and four applications inherit whatever is here, so
 the reasoning is written down rather than left in the commit that produced it.
 
 **The handoff.** A client reconnects with ``Last-Event-ID: 41`` and wants every event after 41,

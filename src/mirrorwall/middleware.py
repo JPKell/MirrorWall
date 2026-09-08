@@ -1,4 +1,4 @@
-"""mirrorwall.middleware — request IDs, Host validation and CSRF, identical in all three apps.
+"""mirrorwall.middleware — request IDs, Host validation and CSRF, identical in every app.
 
 Two of the three are security controls, and both run **before routing and before any
 authentication dependency** (ADR-0026 §1): a rebinding attempt or a forged form post must not
@@ -17,10 +17,12 @@ import logging
 import re
 import secrets
 import time
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, Any, Final
+from urllib.parse import parse_qs
 
 from baseaicore import new_id
 from starlette.datastructures import Headers, MutableHeaders
+from starlette.responses import JSONResponse
 
 from mirrorwall.responses import error_body
 
@@ -166,25 +168,20 @@ class HostValidationMiddleware:
 
         raw = Headers(scope=scope).get("host", "")
         if split_host(raw) not in self._allowed:
-            request_id = scope.get("state", {}).get("request_id") or new_id()
             # `request_id` is deliberately not in `extra`: RequestIdMiddleware's record factory
             # already binds it to every record for this request, and `logging` refuses an `extra`
             # key that would overwrite an existing attribute. Passing it here raises a KeyError
             # from inside the rejection path — the one path that must never fail.
             logger.warning("request.host_rejected", extra={"host": raw})
-            from starlette.responses import JSONResponse
-
-            response = JSONResponse(
-                status_code=421,
-                content=error_body(
-                    code="MISDIRECTED_REQUEST",
-                    message="The Host header does not match an allowed hostname for this server.",
-                    request_id=request_id,
-                    details={"host": raw},
-                ),
-                headers={"X-Request-ID": request_id, "Cache-Control": "no-store"},
+            await _reject(
+                scope,
+                receive,
+                send,
+                status=421,
+                code="MISDIRECTED_REQUEST",
+                message="The Host header does not match an allowed hostname for this server.",
+                details={"host": raw},
             )
-            await response(scope, receive, send)
             return
         await self.app(scope, receive, send)
 
@@ -247,8 +244,6 @@ class CsrfMiddleware:
             return
 
         body, receive = await _buffered_body(receive)
-        from urllib.parse import parse_qs
-
         submitted = parse_qs(body.decode("utf-8", "replace")).get(self._field_name, [""])[0]
         expected = _cookie(headers.get("cookie", ""), self._cookie_name)
         if not expected or not submitted or not hmac.compare_digest(submitted, expected):
@@ -257,17 +252,29 @@ class CsrfMiddleware:
         await self.app(scope, receive, send)
 
     async def _reject(self, scope: Scope, receive: Receive, send: Send, message: str) -> None:
-        request_id = scope.get("state", {}).get("request_id") or new_id()
         # See the note in HostValidationMiddleware: the record factory already binds request_id.
         logger.warning("request.csrf_failed")
-        from starlette.responses import JSONResponse
+        await _reject(scope, receive, send, status=403, code="CSRF_FAILED", message=message)
 
-        response = JSONResponse(
-            status_code=403,
-            content=error_body(code="CSRF_FAILED", message=message, request_id=request_id),
-            headers={"X-Request-ID": request_id, "Cache-Control": "no-store"},
-        )
-        await response(scope, receive, send)
+
+async def _reject(  # noqa: PLR0913 — one call site per rejection, every field named
+    scope: Scope,
+    receive: Receive,
+    send: Send,
+    *,
+    status: int,
+    code: str,
+    message: str,
+    details: dict[str, Any] | None = None,
+) -> None:
+    """Send the standard error body for a request a middleware refuses to pass on."""
+    request_id = scope.get("state", {}).get("request_id") or new_id()
+    response = JSONResponse(
+        status_code=status,
+        content=error_body(code=code, message=message, request_id=request_id, details=details),
+        headers={"X-Request-ID": request_id, "Cache-Control": "no-store"},
+    )
+    await response(scope, receive, send)
 
 
 def _cookie(header: str, name: str) -> str:

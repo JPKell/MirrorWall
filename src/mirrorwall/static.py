@@ -22,6 +22,7 @@ from starlette.responses import Response
 from starlette.staticfiles import StaticFiles
 
 from mirrorwall.filters import STATIC_URL_PREFIX
+from mirrorwall.filters import asset_url as plain_asset_url
 from mirrorwall.templating import PACKAGE_STATIC_DIR
 
 if TYPE_CHECKING:
@@ -129,19 +130,16 @@ def asset_url(
         ``{prefix}/{path}?v={digest}``.
 
     Raises:
-        ValueError: ``path`` escapes the static root — that is a template bug, not a missing file,
-            and it is never rendered as a URL.
+        ValueError: ``path`` is absolute or escapes the static root — that is a template bug, not
+            a missing file, and it is never rendered as a URL. The check is
+            :func:`mirrorwall.filters.asset_url`'s own, so the two forms cannot disagree.
     """
-    cleaned = path.strip()
-    normalized = posixpath.normpath(cleaned)
-    if cleaned.startswith("/") or "\\" in cleaned or normalized.startswith(".."):
-        message = f"asset path escapes the static root: {path!r}"
-        raise ValueError(message)
+    plain = plain_asset_url(path, prefix=prefix)  # the same refusals, by construction
     try:
-        digest = asset_digest(normalized, root=root)
+        digest = asset_digest(plain.removeprefix(f"{prefix}/"), root=root)
     except FileNotFoundError:
-        return f"{prefix}/{normalized}"
-    return f"{prefix}/{normalized}?v={digest}"
+        return plain
+    return f"{plain}?v={digest}"
 
 
 class HashedStaticFiles(StaticFiles):

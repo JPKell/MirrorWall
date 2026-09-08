@@ -7,6 +7,13 @@ packaging and release standards §3.
 
 ## [Unreleased]
 
+### Changed
+- Internal tightening with no behavioural change: both middleware rejections go through one
+  error-response helper and the inline imports move to module scope; the hashed `asset_url` runs
+  the plain filter's own path check instead of a second copy of it; `error_response` builds one
+  body; `bytes_human` loses its unreachable branch. Module docstrings now count four applications,
+  PromptCadence included.
+
 ### Added
 
 - `tests/unit/test_readme_version.py` — asserts the version README.md states after its `Status:`

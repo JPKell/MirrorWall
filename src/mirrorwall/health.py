@@ -2,7 +2,7 @@
 
 The package supplies the shape and the roll-up rule; each application supplies its own components
 (a database, a provider, a queue) and decides what makes each one degraded. That split is the
-point: three applications answer "are you healthy?" in the same words, about different things.
+point: four applications answer "are you healthy?" in the same words, about different things.
 
 ``NOT_CONFIGURED`` is a first-class status, not a synonym for ``UNAVAILABLE``. A component nobody
 asked for is not broken, and rolling it up as though it were turns every default install into a

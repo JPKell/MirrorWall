@@ -1,11 +1,11 @@
-"""mirrorwall.responses — the JSON, error and pagination envelopes all three applications emit.
+"""mirrorwall.responses — the JSON, error and pagination envelopes every application emits.
 
 One shape, everywhere. API standards §4 is explicit that an error is **not** wrapped in a SetSpec
 envelope: an error describes one request, not a document that outlives it (ADR-0025 §4). The
 success and pagination shapes follow the same rule for the same reason — a list of rows a client
 is about to render is not an artifact anyone will diff six months later.
 
-What this module guarantees, and what its tests assert, is that FreeWeight and LoadCoach produce
+What this module guarantees, and what its tests assert, is that every application produces
 **byte-compatible** bodies: the same key order, the same timestamp format, the same
 ``request_id`` on success and on failure alike.
 """
@@ -123,22 +123,14 @@ def error_response(
     Returns:
         The response, with the standard headers.
     """
+    details: Mapping[str, Any] | None
     if isinstance(error, SuiteError):
-        body = error_body(
-            code=error.code,
-            message=error.message,
-            request_id=request_id,
-            details=error.details,
-            timestamp=timestamp,
-        )
+        code, message, details = error.code, error.message, error.details
     else:
-        body = error_body(
-            code=str(error["code"]),
-            message=str(error["message"]),
-            request_id=request_id,
-            details=error.get("details"),
-            timestamp=timestamp,
-        )
+        code, message, details = str(error["code"]), str(error["message"]), error.get("details")
+    body = error_body(
+        code=code, message=message, request_id=request_id, details=details, timestamp=timestamp
+    )
     return JSONResponse(status_code=status, content=body, headers=_headers(request_id))
 
 
