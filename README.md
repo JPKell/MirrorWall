@@ -2,12 +2,13 @@
 
 Design tokens, layout, component macros, SSE and JSON/error envelope helpers so the suite's applications look like one family without sharing a page.
 
-**Status:** Phases 1 and 2 implemented at `0.2.2` — design tokens, the layout shell, the component
-macros, template filters, JSON and error envelopes, request-ID/Host/CSRF middleware, SSE with a
-gap-free replay-to-live handoff, static mounting with content-hashed URLs, and the health
-primitives. LoadCoach renders every page on it. Phase 3 (the interactive table and chart modules,
-the component gallery) is next — see the
-[development plan](docs/packages/mirrorwall/development-plan.md).
+**Status:** `0.3.0` (prepared, unpublished) — Phases 1–4: design tokens, the layout shell, the
+component macros, template filters, JSON and error envelopes, request-ID/Host/CSRF middleware,
+SSE with a gap-free replay-to-live handoff, static mounting with content-hashed URLs, the health
+primitives, and Phase 4's dense-console tokens (`status_dot`, `app_tab`, `meter`, `log_pane`,
+`side_nav`, a `figure` card, dense/mono tables) with htmx vendored opt-in per page (ADR-0128).
+LoadCoach renders every page on `0.2.2`; nothing above changes its rendering until it opts in.
+See the [development plan](docs/packages/mirrorwall/development-plan.md).
 
 Part of the **Local AI Suite**.
 

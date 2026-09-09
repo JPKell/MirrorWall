@@ -1,10 +1,14 @@
 # MirrorWall — Specification
 
 **Type:** Python package (web/UI toolkit) · **Import/distribution name:** `mirrorwall` · **Layer:** 3
-**Status:** Implemented and published as `mirrorwall 0.2.2`. **Extracted at:** LoadCoach Phase 4,
-from FreeWeight's web layer ([ADR-0011](../../adr/0011-shared-package-boundaries.md)); adopted by
-FreeWeight at its Phase 12, and by PromptCadence from its first web layer.
-**Decision records:** [ADR-0020](../../adr/0020-ui-rendering-strategy.md), [ADR-0004](../../adr/0004-sse-vs-websockets.md).
+**Status:** Implemented and published as `mirrorwall 0.2.2`; **`0.3.0` prepared (unpublished,
+row WM)** — the WeightRoomGym design brief's dense-console tokens and seven generic components
+(Phase 4). **Extracted at:** LoadCoach Phase 4, from FreeWeight's web layer
+([ADR-0011](../../adr/0011-shared-package-boundaries.md)); adopted by FreeWeight at its Phase 12,
+and by PromptCadence from its first web layer.
+**Decision records:** [ADR-0020](../../adr/0020-ui-rendering-strategy.md), [ADR-0004](../../adr/0004-sse-vs-websockets.md),
+[ADR-0128](../../adr/0128-mirrorwall-vendors-htmx-and-applications-may-adopt-it.md) (0.3: vendors
+htmx and its SSE extension, opt-in per page).
 
 ---
 
@@ -48,7 +52,7 @@ fonts, icons).
 |---|---|
 | Design tokens | `tokens.css` and `tokens.json` per [UI/UX Standards](../../standards/ui-ux-standards.md), with per-application accent override |
 | Base layout | Shell template: header slot, telemetry bar, content block, footer, theme bootstrap script |
-| Components | Jinja macros: button, input, select, checkbox/radio/switch, card, table, badge, tabs, drawer, dialog, toast, tooltip, progress, empty state, pagination, filter bar, key–value list, code/JSON viewer, chart container |
+| Components | Jinja macros: button, input, select, checkbox/radio/switch, card (default or `figure`), table (dense or comfortable, mono columns), badge, status dot, app tab, tabs, drawer, dialog, toast, tooltip, progress, empty state, pagination, filter bar, key–value list, code/JSON viewer, chart container, log pane, side nav |
 | Telemetry bar | Macro + JS module consuming a generic telemetry payload, rendering `—` for unsupported values |
 | Theme | System/light/dark, no-flash bootstrap, `localStorage` persistence, chart re-theme hook |
 | SSE | Server helper (`sse_response`) and client module with reconnect and `Last-Event-ID` |
@@ -257,6 +261,5 @@ Coverage floor: **95 %** for Python; JS modules covered by the DOM harness with 
 * A small chart-spec wrapper so applications declare charts in Python and MirrorWall emits the
   vendor-specific configuration.
 * Printable/report stylesheet.
-* Optional density mode (compact/comfortable) as a token set.
 * Additional vendored icon set entries as applications need them.
 * A component gallery page (`mirrorwall.gallery`) served by any application in development mode.

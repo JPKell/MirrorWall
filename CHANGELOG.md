@@ -7,18 +7,45 @@ packaging and release standards §3.
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-09-09
+
+Phase 4: the WeightRoomGym design brief's dense-console tokens and seven generic components (row
+WM). Prepared, not published. Every addition is additive — an application that never opts into a
+new parameter or `mirrorwall.htmx` renders exactly as it did under `0.2.2`.
+
+### Added
+- **Tokens:** `--mw-font-size-{base,sm,xs,title,figure}`, `--mw-sidebar-w`,
+  `--mw-label-tracking`, `--mw-meter-h`, `--mw-row-h-comfortable`, and the status-dot vocabulary
+  `--mw-status-{ok,degraded,stopped,unknown}` (both themes, four new 3:1 contrast pairs — the dot
+  carries the colour, its word stays plain text). `--mw-row-h` keeps its `0.2.2` value; a table
+  opts into 32px rows locally via `table(density="dense")`, so no existing page's row height moves
+  on upgrade.
+- **JetBrains Mono vendored**, two `@font-face` rules (Regular/Bold woff2, SIL OFL 1.1) at the top
+  of `tokens.css`, and named first in `--mw-font-data`.
+- **htmx 2.0.10 and htmx-ext-sse 2.2.2 vendored** (0BSD), pinned, 19 075 bytes gzipped combined —
+  under ADR-0128's 20 KB budget. `base.html` loads them only when the caller's context sets
+  `mirrorwall.htmx` true; a page that does not renders byte-identically to `0.2.2`. Swaps and SSE
+  regions are `hx-*`/`sse-*` attributes; behaviour (the log pane's bounded buffer, the
+  *dropped N lines* frame, pause) stays a small ES module, per ADR-0128 rule 6.
+- **Seven components** (`templates/mirrorwall/components.html`): `status_dot`, `app_tab`, `meter`
+  (`telemetry_bar` gained an additive `meters=` parameter), a `figure` kind on `card`, a `density`
+  and per-column `mono` on `table`, `log_pane` (+ `static/js/log_pane.js`), and `side_nav`.
+- `tests/js/test_log_pane.py` — a Node DOM-harness suite for the bounded buffer, the dropped-line
+  count, the pause toggle, and its suppression of the next `htmx:beforeSwap` while paused.
+- `tests/unit/test_readme_version.py` — asserts the version README.md states after its `Status:`
+  line equals `__about__.__version__`, so a release cannot leave the README stale (M9 re-audit,
+  row L7).
+
 ### Changed
 - Internal tightening with no behavioural change: both middleware rejections go through one
   error-response helper and the inline imports move to module scope; the hashed `asset_url` runs
   the plain filter's own path check instead of a second copy of it; `error_response` builds one
   body; `bytes_human` loses its unreachable branch. Module docstrings now count four applications,
   PromptCadence included.
-
-### Added
-
-- `tests/unit/test_readme_version.py` — asserts the version README.md states after its `Status:`
-  line equals `__about__.__version__`, so a release cannot leave the README stale (M9 re-audit,
-  row L7).
+- `tests/test_no_application_vocabulary.py` exempts `static/vendor/` from the application-vocabulary
+  scan — a vendored library's own naming is upstream's, not this package's — while every other
+  vendoring rule (digest, licence) still applies to it. Its generic-parameter allowlist gains
+  `href`, `pane_id`, `sections` and `value_text` for the new macros' required parameters.
 
 ## [0.2.2] — 2026-09-04
 

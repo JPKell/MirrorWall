@@ -5,6 +5,8 @@
 Phase 12.
 **Target:** `mirrorwall 0.2.0` by the end of Phase 3.
 **Reached; `0.2.2` is published** — the pin widen of row E5, with no behaviour change.
+**Phase 4 target:** `mirrorwall 0.3.0`, row WM (WeightRoomGym design brief). **Reached; prepared,
+not published** — gates A–C below.
 
 **Precondition for starting:** FreeWeight has a complete, polished UI in production use, and LoadCoach
 needs the same shell, components and streaming. The components have therefore been designed against
@@ -183,3 +185,104 @@ regressions in later changes (mitigated by the automated a11y suite).
 **Gold standards:** upgradeable without page changes; accessible; offline; no application vocabulary;
 ≥ 95 % coverage.
 **Deferred:** chart-spec wrapper, print stylesheet, density modes, additional icons.
+
+---
+
+## Phase 4 — WeightRoomGym design brief: dense-console tokens and seven generic components
+
+**Goal:** WeightRoomGym (row W3+) can build its shell, telemetry strip, log panes and left menu
+entirely from MirrorWall macros, with every existing application still rendering byte-identically
+until it opts in.
+
+**Prerequisites:** Phases 1–3; [`apps/weightroom/design.md`](../apps/weightroom/design.md) (the
+token deltas, §2, and the component list, §5); [ADR-0128](../../adr/0128-mirrorwall-vendors-htmx-and-applications-may-adopt-it.md).
+
+**Work**
+
+Gate A — tokens:
+* `--mw-font-size-{base,sm,xs,title,figure}`, `--mw-sidebar-w`, `--mw-label-tracking`,
+  `--mw-meter-h`, `--mw-row-h-comfortable` — additive, root-only, no existing rule reads them yet.
+* `--mw-status-{ok,degraded,stopped,unknown}`, both themes, four new 3:1 contrast pairs (the dot
+  carries the colour; its word is the page's ordinary text, so no new text-contrast obligation
+  follows it).
+* `--mw-row-h` keeps its 0.2.2 value; `table[data-density="dense"]` (`tables.css`) overrides it to
+  32px scoped to the table that asks for it, which is what keeps every unmigrated page unchanged.
+* `--mw-font-data` names `"JetBrains Mono"` first, vendored via two `@font-face` rules (Regular
+  and Bold, SIL OFL 1.1) at the top of `tokens.css`, loaded by a path relative to the stylesheet.
+* htmx 2.0.10 and htmx-ext-sse 2.2.2 vendored under `static/vendor/htmx/` (0BSD), pinned, combined
+  19 075 bytes gzipped — under the ADR's 20 KB budget. `THIRD_PARTY_NOTICES.md` and
+  `static/ASSETS.sha256` updated; the application-vocabulary scan exempts `static/vendor/` (naming
+  is upstream's, not this package's) while every other vendoring rule — digest, licence — still
+  applies to it.
+
+Gate B — components (all in `templates/mirrorwall/components.html` unless noted):
+* `status_dot(status="unknown", label=None)` — the dot-plus-word pattern, `data-status` driven.
+* `app_tab(label, href, status=None, selected=False)` — a top-bar link to a peer application.
+* `meter(label, value_text, percent=None)` — a `role="meter"` track/fill/value; with `percent`
+  omitted (a measurement this machine cannot take, ADR-0016) it renders label and value only,
+  never a bar claiming a number it does not have. `telemetry_bar(stream_url, meters=None)` gained
+  the `meters` parameter to append these after the fixed CPU/RAM/GPU/VRAM fields.
+* `card(label, value, note=None, kind="default")` — `kind="figure"` adds the 22px mono tabular
+  value class; the default renders exactly as before.
+* `table(..., density=None)` and a per-column `mono` flag alongside the existing `numeric` one —
+  `density="dense"` sets `data-density="dense"` on the `<table>`, scoping the row-height override
+  to it alone; `mono` reuses the existing `.mono` utility rather than inventing a second one.
+* `log_pane(pane_id, stream_url=None, max_lines=500, label="Log")` plus `static/js/log_pane.js` —
+  the bounded buffer, the *dropped N lines* frame and the pause button are the module's job
+  (ADR-0128 rule 6); swaps are `hx-ext="sse"`/`sse-swap`/`hx-swap` attributes when `stream_url` is
+  given, and the pane's initial, JavaScript-free state works with neither.
+* `side_nav(sections, footer=None, label="Sections")` — a section's pages are keyed `links`, not
+  `items` (a plain dict's `.items` resolves to the built-in method before Jinja's key-lookup
+  fallback, so `section.items` would silently iterate `dict.items` the first time a caller passed
+  a real dict).
+* `base.html` loads htmx only when the caller's context sets `mirrorwall.htmx` true, probed with
+  `is defined` throughout (safe under `StrictUndefined` whether or not `mirrorwall` is passed at
+  all); the CSRF token goes out once through `hx-headers` on `<body>`.
+
+**Files/subsystems**
+```text
+src/mirrorwall/static/css/{tokens,tables,components,layout}.css   (edited)
+src/mirrorwall/static/css/tokens.json                             (edited, kept in sync)
+src/mirrorwall/static/vendor/htmx/{htmx.min.js,htmx-ext-sse.js,LICENSE}
+src/mirrorwall/static/fonts/jetbrains-mono/{JetBrainsMono-Regular.woff2,
+                                             JetBrainsMono-Bold.woff2,LICENSE}
+src/mirrorwall/static/js/log_pane.js
+src/mirrorwall/templates/mirrorwall/{components,telemetry_bar,base}.html   (edited)
+tests/unit/test_tokens.py                     (four new contrast pairs)
+tests/snapshot/test_components.py             (every new macro, both themes)
+tests/js/test_log_pane.py                     (Node DOM harness: bound, drop count, pause)
+tests/test_no_application_vocabulary.py       (vendor exemption; new generic parameter names)
+```
+
+**Tests**
+* Contrast: the four status tokens at 3:1 against `--mw-surface`, both themes.
+* Snapshot: `status_dot`, `app_tab`, `meter` (with and without `percent`), `card(kind="figure")`,
+  `table(density=..., mono columns)`, `log_pane` (with and without `stream_url`), `side_nav`; and,
+  for every macro that changed shape, a test proving the pre-0.3 call renders unchanged.
+* `log_pane.js`: lines beyond `max_lines` are trimmed and counted as dropped; a pane within budget
+  is untouched; the pause button toggles `aria-pressed`/label; a paused pane sets
+  `event.detail.shouldSwap = false` on `htmx:beforeSwap`; an unpaused one leaves it alone.
+* Term scan: `static/vendor/` exempted; every new macro's required parameters are still generic
+  presentation words (`href`, `pane_id`, `sections`, `value_text` added to the allowed set).
+* Asset manifest: every new vendored file's digest recorded; every vendored file (now non-empty)
+  named in `THIRD_PARTY_NOTICES.md` with its licence file present.
+
+**Acceptance criteria**
+1. Every existing snapshot test for an unchanged macro still passes unmodified — the upgrade is
+   byte-identical for a page that does not opt into `kind`, `density`, `meters` or `mirrorwall.htmx`.
+2. The four new status tokens and the vendored font and htmx files pass every existing vendoring,
+   contrast and offline-asset test with no exemption beyond the one stated above.
+3. `ruff format --check`, `ruff check`, `mypy --strict`, `lint-imports` clean; coverage 98.02 %
+   (floor 95 %).
+
+**Known risks:** a dict-keyed macro parameter shadowing a builtin method name (`section.items` vs
+`dict.items`) — the failure mode `side_nav` avoided by naming the key `links` instead, documented
+in the macro's own comment so it is not reintroduced.
+**Likely failure modes:** a required macro parameter that reads as domain-specific rather than
+presentational (`test_no_component_macro_has_an_application_shaped_required_parameter` catches
+this at the macro-signature level, not just by review).
+**Gold standards:** upgrade without page changes (proven per-macro, not just at the suite level);
+accessible (`role="meter"`, the dot's word, the log pane's `role="log"`); offline (vendored, no
+CDN); no application vocabulary (vendor exemption is scoped and documented, not a blanket carve-out).
+**Deferred:** the four applications' own adoption of these tokens and components (row WM2); removing
+the pre-htmx swap/SSE JS modules (ADR-0128 rule 7, not before every application has adopted htmx).
