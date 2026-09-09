@@ -6,7 +6,14 @@
 
    The theme bootstrap is inline and tiny on purpose (UI standards §9): it must run before first
    paint or a dark-mode reader sees a white flash, and an external file is a second request that
-   can lose that race. #}
+   can lose that race.
+
+   htmx (ADR-0128) is opt-in per page: it loads only when the application's context sets
+   `mirrorwall.htmx` true, so a page that never asks for it renders exactly as it did under 0.2.2
+   — the same gold standard the rest of this template already holds to. `mirrorwall.htmx` is
+   probed with `is defined` throughout, which is safe under `StrictUndefined` whether or not the
+   application passes a `mirrorwall` context object at all. #}
+{%- set htmx_enabled = mirrorwall is defined and mirrorwall.htmx is defined and mirrorwall.htmx %}
 <!doctype html>
 <html lang="{{ language | default('en') }}">
 <head>
@@ -31,7 +38,7 @@
   <link rel="stylesheet" href="{{ 'css/charts.css' | asset_url }}">
   {% block head %}{% endblock %}
 </head>
-<body>
+<body{% if htmx_enabled and csrf_token is defined %} hx-headers='{"csrf_token": "{{ csrf_token }}"}'{% endif %}>
   <a class="skip-link" href="#content">Skip to content</a>
   <header>
     <div class="masthead">
@@ -69,6 +76,11 @@
   {% endblock %}
   <script src="{{ 'js/theme.js' | asset_url }}" defer></script>
   <script src="{{ 'js/table.js' | asset_url }}" defer></script>
+  {%- if htmx_enabled %}
+  <script src="{{ 'vendor/htmx/htmx.min.js' | asset_url }}" defer></script>
+  <script src="{{ 'vendor/htmx/htmx-ext-sse.js' | asset_url }}" defer></script>
+  <script src="{{ 'js/log_pane.js' | asset_url }}" defer></script>
+  {%- endif %}
   {% block scripts %}{% endblock %}
 </body>
 </html>

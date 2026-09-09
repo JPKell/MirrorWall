@@ -31,4 +31,11 @@
     <span class="telemetry-unit">/</span>
     <span class="telemetry-value" data-field="gpu_vram_total_bytes">—</span>
   </span>
+  {%- if telemetry_meters is defined and telemetry_meters %}
+  {%- from "mirrorwall/components.html" import meter %}
+  {%- for m in telemetry_meters %}
+  <span class="telemetry-sep" aria-hidden="true"></span>
+  {{ meter(m.label, m.value_text, percent=m.percent if m.percent is defined else none) }}
+  {%- endfor %}
+  {%- endif %}
 </div>

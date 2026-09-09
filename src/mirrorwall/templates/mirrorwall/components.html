@@ -63,27 +63,34 @@
 </div>
 {%- endmacro %}
 
-{% macro card(label, value, note=None) -%}
-<li class="card">
+{% macro card(label, value, note=None, kind="default") -%}
+<li class="card{{ ' card--figure' if kind == 'figure' else '' }}">
   <span class="card-label">{{ label }}</span>
   <span class="card-value">{{ value }}</span>
   {% if note %}<span class="card-note">{{ note }}</span>{% endif %}
 </li>
 {%- endmacro %}
 
-{% macro table(columns, rows, caption=None, table_id=None, sortable=False, complete=True, row_count=None) -%}
-{# `columns` is a sequence of mappings with a required `label` and an optional `numeric`; `rows` is
-   a sequence of already-rendered cell values. The `numeric` key is tested with `is defined` rather
-   than read directly, because the environment uses StrictUndefined and an omitted optional key is
-   an ordinary column, not a mistake.
+{% macro table(columns, rows, caption=None, table_id=None, sortable=False, complete=True, row_count=None, density=None) -%}
+{# `columns` is a sequence of mappings with a required `label` and optional `numeric`/`mono` flags;
+   `rows` is a sequence of already-rendered cell values. Both flags are tested with `is defined`
+   rather than read directly, because the environment uses StrictUndefined and an omitted optional
+   key is an ordinary column, not a mistake.
 
    `complete` is not decoration. UI standards §5: a client-side sort must apply to the whole
    dataset, so a table holding one page of a longer result set declares `complete=False` and the
-   table module refuses to wire a sort control onto it. #}
+   table module refuses to wire a sort control onto it.
+
+   `density="dense"` (design brief §5) drops the row height to 32 px and the header to the small
+   label style, scoped to this table alone (tables.css); every other table on the page, and every
+   table that does not pass it, is unaffected. `mono` (design brief §2) marks a column — a model
+   ID, a digest, a timestamp — as data rather than prose, reusing the `.mono` utility already in
+   layout.css rather than inventing a second way to say the same thing. #}
 <div class="table-scroll">
   <table{% if table_id %} data-table="{{ table_id }}"{% endif %}
          data-sortable="{{ 'true' if sortable else 'false' }}"
-         data-complete="{{ 'true' if complete else 'false' }}">
+         data-complete="{{ 'true' if complete else 'false' }}"
+         {%- if density %} data-density="{{ density }}"{% endif %}>
     {% if caption %}<caption>{{ caption }}</caption>{% endif %}
     <thead>
       <tr>
@@ -96,7 +103,11 @@
       {% for row in rows %}
       <tr>
         {% for cell in row %}
-        <td{% if columns[loop.index0].numeric is defined and columns[loop.index0].numeric %} class="numeric"{% endif %}>{{ cell }}</td>
+        {% set column = columns[loop.index0] %}
+        {% set cell_classes = [] %}
+        {% if column.numeric is defined and column.numeric %}{% set _ = cell_classes.append('numeric') %}{% endif %}
+        {% if column.mono is defined and column.mono %}{% set _ = cell_classes.append('mono') %}{% endif %}
+        <td{% if cell_classes %} class="{{ cell_classes | join(' ') }}"{% endif %}>{{ cell }}</td>
         {% endfor %}
       </tr>
       {% endfor %}
@@ -201,6 +212,84 @@
 </figure>
 {%- endmacro %}
 
-{% macro telemetry_bar(stream_url="") -%}
-{% with telemetry_stream_url = stream_url %}{% include "mirrorwall/telemetry_bar.html" %}{% endwith %}
+{% macro telemetry_bar(stream_url="", meters=None) -%}
+{% with telemetry_stream_url = stream_url, telemetry_meters = meters %}{% include "mirrorwall/telemetry_bar.html" %}{% endwith %}
+{%- endmacro %}
+
+{#- The five macros below are new in 0.3, for the WeightRoomGym design brief (§5): a status
+    vocabulary, a top-bar app tab, a telemetry meter, a bounded live log, and a sectioned left
+    menu. Every one of them is additive — nothing above this line changed shape — and every
+    required parameter is a generic presentation word, same as the rest of this file
+    (`tests/test_no_application_vocabulary.py::test_no_component_macro_has_an_application_shaped_required_parameter`). -#}
+
+{% macro status_dot(status="unknown", label=None) -%}
+{#- `status` is one of ok/degraded/stopped/unknown (design brief §3) — a vocabulary distinct from
+   the queued/running/failed one `badge` already carries, because a status dot describes whether a
+   *component* answers, not whether a *run* finished. The dot alone carries the colour; the word
+   is the page's ordinary text, so a dot with a word it cannot show is still fully described. -#}
+<span class="status-dot" data-status="{{ status }}">
+  <span class="dot" aria-hidden="true"></span>{{ label if label is not none else status }}
+</span>
+{%- endmacro %}
+
+{% macro app_tab(label, href, status=None, selected=False) -%}
+<a href="{{ href }}" class="app-tab"{% if selected %} aria-current="page"{% endif %}>
+  {%- if status %}{{ status_dot(status, label="") }}{% endif %}{{ label }}
+</a>
+{%- endmacro %}
+
+{% macro meter(label, value_text, percent=None) -%}
+{#- `percent` is optional because a meter can be fed a measurement this machine cannot take
+   (UNSUPPORTED, ADR-0016): `role="meter"` requires a real `aria-valuenow`, so a meter with no
+   percent renders its label and value only — never a bar claiming to show a number it does not
+   have, and never a bare 0 someone could average (UI standards §5). -#}
+<span class="meter">
+  <span class="meter-label">{{ label }}</span>
+  {% if percent is not none %}
+  <span class="meter-track" role="meter" aria-label="{{ label }}"
+        aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ percent }}">
+    <span class="meter-fill" style="width: {{ percent }}%"></span>
+  </span>
+  {% endif %}
+  <span class="meter-value">{{ value_text }}</span>
+</span>
+{%- endmacro %}
+
+{% macro log_pane(pane_id, stream_url=None, max_lines=500, label="Log") -%}
+{#- Swaps are htmx, behaviour is `log_pane.js` (ADR-0128 rule 6): the bounded buffer, the
+   *dropped N lines* frame and the pause button all live in the module; this markup is what it
+   operates on, plus the initial, JavaScript-free state (ADR-0020 rule 5). -#}
+<div class="log-pane" id="{{ pane_id }}" data-log-pane data-max-lines="{{ max_lines }}"
+     {%- if stream_url %} hx-ext="sse" sse-connect="{{ stream_url }}"{% endif %}>
+  <div class="log-pane-toolbar">
+    <span>{{ label }}</span>
+    <span>
+      <span class="log-pane-dropped" data-log-pane-dropped hidden>dropped <span data-log-pane-dropped-count>0</span> lines</span>
+      <button type="button" data-log-pane-pause aria-pressed="false">Pause</button>
+    </span>
+  </div>
+  <div class="log-pane-body" id="{{ pane_id }}-body" role="log" aria-live="polite" tabindex="0"
+       {%- if stream_url %} sse-swap="log" hx-swap="beforeend"{% endif %}></div>
+</div>
+{%- endmacro %}
+
+{% macro side_nav(sections, footer=None, label="Sections") -%}
+{#- A section's pages are keyed `links`, not `items`: a plain dict's `.items` resolves to the
+   built-in method before Jinja falls back to key lookup, so a template that wrote `section.items`
+   would silently iterate `dict.items` instead of the caller's list the first time a caller passed
+   a real dict rather than a lucky namespace object. -#}
+<nav class="side-nav" aria-label="{{ label }}">
+  {% for section in sections %}
+  <div class="side-nav-section">
+    {% if section.title is defined and section.title %}<p class="side-nav-title">{{ section.title }}</p>{% endif %}
+    <ul>
+      {% for link in section.links %}
+      <li><a href="{{ link.href }}"{% if link.selected is defined and link.selected %} aria-current="page"{% endif %}>{{ link.label }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% if not loop.last %}<hr>{% endif %}
+  {% endfor %}
+  {% if footer %}<p class="side-nav-footer">{{ footer }}</p>{% endif %}
+</nav>
 {%- endmacro %}

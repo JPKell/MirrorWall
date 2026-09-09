@@ -2,18 +2,25 @@
 # Regenerate with:  (cd src/mirrorwall/static && find . -type f ! -name ASSETS.sha256 | sort | xargs sha256sum > ASSETS.sha256)
 # Verified by tests/unit/test_assets.py, which recomputes every line and fails on a mismatch.
 23df2e734fd7b5017c1632b500bd06e9ea330d341c8baa01604af3bd923a8612  ./css/charts.css
-a6f8b4882ff2f839c56819861edc0598ef9c4c5893d63682719adfcc90bdd5d7  ./css/components.css
-705f81958d1e69fbd4dc32fe1a0a2252529576ff2dbe06264408ab06cefd1f2c  ./css/layout.css
+997ef52962e91ab54d482c3155c2538cab5887a31f4da8657eb80901f0c4d0d3  ./css/components.css
+050ca8a06abc719e9e9726433adb47bde008dead9173d4b973bf9370da597497  ./css/layout.css
 d9a6472d22b65dc5cf80cfa857001b977adab58f933443b29a08dc3a0b814ccb  ./css/reset.css
-6a616241846cd5d8270b54ed5d677bfb95c633fd94ee1f93b0a9ac27285d93de  ./css/tables.css
-a08291a210c00e00a0444dc50253fc7848b8a9e57d8139951c2f93dc1bc63b5b  ./css/tokens.css
-2d5db4f142881e3068a61ebaa53fb400b7c9841078c4fc2c77381b1303ab3bc6  ./css/tokens.json
+e152f39ff0b3dea2a8aae81ed8d08c8aad6ae7e2e5cedba77c89f21b51f8a09c  ./css/tables.css
+1b3290ee2d2340479ba72315767a7810cff5bd24a0cdfe3ed0dbb89651534dee  ./css/tokens.css
+c46c2b30dae1387a1fe213c453f9266c089ecafba918f976e966a764f42a9b1c  ./css/tokens.json
+d0d4e818808f2a0ba39b2b09d1989366f63494e295f003c7ef436697378507e8  ./fonts/jetbrains-mono/JetBrainsMono-Bold.woff2
+14425ba9c695763c1547f48a206b7aa60350a33ae23de09f0407877f3fcd89eb  ./fonts/jetbrains-mono/JetBrainsMono-Regular.woff2
+18aabf190848725e2576eefb5c29ba06aac1029d02132252a7f312eac2e50cf3  ./fonts/jetbrains-mono/LICENSE
 fca689b3dbdbf52f4af0feac396259c2876f0efaf32aa4fcd442f27ee5f8ff8a  ./icons/sprite.svg
 c57837bf105587fbd8e01176d0173243df5df2ab1b4c469b2025a4bcf2a12254  ./js/charts.js
 e983bbb84541acd28e8a33b95af764d80335bcfaeac37baa93f90099ceb11efd  ./js/dialog.js
 4dfc800ca7fa590d06207bcf2ead06660a4453452bff801f131dbba744fec9c4  ./js/drawer.js
+44e445cfb432fbbed90e1fe0858391ad504dafa8e80188f0c3e97f0bd2c1de9e  ./js/log_pane.js
 6be2282dc67b6ce7a02c880a3f6aa7168a470034861de7ff2795bdcaddb5a7c0  ./js/sse.js
 1ef442babc82d822ac105bf31087e1a1c2dd3e11ea3ce0fbcb840a8203917613  ./js/table.js
 d5c612ae7db25b4c5aa427d08bb7c5207ac64c76a8051f4da425c92437a55506  ./js/telemetry.js
 ce155ac4d187c911337bf8f6d8d6991ae6121db0469d492803b05db23b66dddf  ./js/theme.js
 9f6280038c69be935bf574ee6f791118fd221a9d3223d0bd0dc2def35a3ce365  ./js/toast.js
+83eca6fa0611fe2b0bf1700b424b88b5eced38ef448ef9760a2ea08fbc875611  ./vendor/htmx/htmx-ext-sse.js
+71ea67185bfa8c98c39d31717c6fce5d852370fcdfd129db4543774d3145c0de  ./vendor/htmx/htmx.min.js
+d3d2456f76414f2456104660ebd65aff1c04cd7966b942bdabd63f3cdb316a38  ./vendor/htmx/LICENSE

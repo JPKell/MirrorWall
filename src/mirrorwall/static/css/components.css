@@ -33,6 +33,14 @@
 }
 .card .card-note { font-size: 12px; color: var(--mw-text-muted); }
 
+/* Figure card (design brief §5, extends `card`): a bigger, mono, tabular value for a four-up
+   summary row. Nothing about the default card above changes, so a page that never asks for
+   `kind="figure"` renders exactly as it did in 0.2.2. */
+.card--figure .card-value {
+  font-family: var(--mw-font-data);
+  font-size: var(--mw-font-size-figure);
+}
+
 .empty-state, .error-state, .warning-state, .notice {
   border: 1px solid var(--mw-border);
   background: var(--mw-surface);
@@ -192,3 +200,60 @@ code { font-family: var(--mw-font-data); }
 progress { width: 100%; }
 
 .icon { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2; vertical-align: -0.125em; }
+
+/* Status dot (design brief §3, §5): a colour beside a word, never the colour alone. The word
+   stays the page's ordinary text colour — only the dot carries `data-status`'s colour — which is
+   what keeps every dot a 3:1 UI boundary rather than a fifth text-contrast obligation. */
+.status-dot { display: inline-flex; align-items: center; gap: var(--mw-space-1); white-space: nowrap; }
+.status-dot .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--mw-status-unknown);
+  flex: none;
+}
+.status-dot[data-status="ok"] .dot        { background: var(--mw-status-ok); }
+.status-dot[data-status="degraded"] .dot  { background: var(--mw-status-degraded); }
+.status-dot[data-status="stopped"] .dot   { background: var(--mw-status-stopped); }
+.status-dot[data-status="unknown"] .dot   { background: var(--mw-status-unknown); }
+
+/* Telemetry meter (design brief §5, extends `telemetry_bar`): a track/fill bar with a text value,
+   `role="meter"` so the number beside it is never the only representation. */
+.meter { display: inline-flex; align-items: center; gap: var(--mw-space-2); }
+.meter-track {
+  width: 4rem;
+  height: var(--mw-meter-h);
+  border-radius: calc(var(--mw-meter-h) / 2);
+  background: var(--mw-surface-alt);
+  overflow: hidden;
+}
+.meter-fill { display: block; height: 100%; background: var(--mw-accent); border-radius: inherit; }
+.meter-value { font-variant-numeric: tabular-nums; }
+
+/* Log pane (design brief §5): a bounded, pausable, level-coloured live tail. The bound and the
+   "dropped N lines" count are `log_pane.js`'s job (ADR-0128 rule 6); this file only styles what
+   it produces. */
+.log-pane {
+  border: 1px solid var(--mw-border);
+  border-radius: var(--mw-radius-md);
+  background: var(--mw-surface);
+}
+.log-pane-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mw-space-2);
+  padding: var(--mw-space-1) var(--mw-space-3);
+  border-bottom: 1px solid var(--mw-border);
+  font-size: 12px;
+  color: var(--mw-text-muted);
+}
+.log-pane-body {
+  height: 16rem;
+  overflow-y: auto;
+  padding: var(--mw-space-2) var(--mw-space-3);
+  font-family: var(--mw-font-data);
+  font-size: 12px;
+}
+.log-pane-line { white-space: pre-wrap; word-break: break-word; }
+.log-pane-line .log-pane-time { color: var(--mw-text-subtle); }
+.log-pane-line[data-level="warning"] { color: var(--mw-warning); }
+.log-pane-line[data-level="error"]   { color: var(--mw-danger); }

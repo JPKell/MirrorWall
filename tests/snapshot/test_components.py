@@ -308,6 +308,161 @@ def test_telemetry_bar_starts_every_field_at_an_em_dash(environment: Environment
     assert not re.search(r'data-field="[a-z_]+">0<', html)
 
 
+def test_card_default_rendering_is_unchanged_by_the_new_figure_kind(
+    environment: Environment,
+) -> None:
+    """0.3 adds `kind` to `card`; a caller that never passes it renders exactly as before."""
+    html = render(environment, MACROS + "card %}{{ card('Jobs today', '42') }}")
+    assert html.startswith('<li class="card">')
+    assert "card--figure" not in html
+
+
+def test_card_figure_kind_carries_the_mono_tabular_class(environment: Environment) -> None:
+    html = render(environment, MACROS + "card %}{{ card('Spend today', '$4.12', kind='figure') }}")
+    assert 'class="card card--figure"' in html
+
+
+def test_table_density_and_mono_columns(environment: Environment) -> None:
+    html = render(
+        environment,
+        MACROS + "table %}{{ table(columns, rows, density='dense') }}",
+        columns=[{"label": "Name"}, {"label": "Digest", "mono": True}],
+        rows=[["alpha", "sha256:abc"]],
+    )
+    assert 'data-density="dense"' in html
+    assert '<td class="mono">sha256:abc</td>' in html
+    assert "<td>alpha</td>" in html
+
+
+def test_a_table_with_neither_flag_renders_a_bare_cell(environment: Environment) -> None:
+    """The pre-0.3 shape: no numeric, no mono, no class attribute at all."""
+    html = render(
+        environment,
+        MACROS + "table %}{{ table(columns, rows) }}",
+        columns=[{"label": "Name"}],
+        rows=[["alpha"]],
+    )
+    assert "<td>alpha</td>" in html
+    assert "class=" not in html.split("<tbody>")[1]
+
+
+@pytest.mark.parametrize("status", ["ok", "degraded", "stopped", "unknown"])
+def test_status_dot_carries_its_word_as_well_as_its_colour(
+    environment: Environment, status: str
+) -> None:
+    """UI standards §4.1: colour is never the only signal — same rule as `badge`, new vocabulary."""
+    html = render(environment, MACROS + "status_dot %}{{ status_dot(status) }}", status=status)
+    assert f'data-status="{status}"' in html
+    assert status in html
+
+
+def test_status_dot_accepts_an_explicit_label_distinct_from_the_status_value(
+    environment: Environment,
+) -> None:
+    html = render(environment, MACROS + "status_dot %}{{ status_dot('ok', label='2h 14m') }}")
+    assert 'data-status="ok"' in html
+    assert "2h 14m" in html
+
+
+def test_app_tab_is_a_link_with_aria_current_when_selected(environment: Environment) -> None:
+    html = render(
+        environment,
+        MACROS + "app_tab %}{{ app_tab('LoadCoach', '/loadcoach', status='ok', selected=True) }}",
+    )
+    assert '<a href="/loadcoach"' in html
+    assert 'aria-current="page"' in html
+    assert 'data-status="ok"' in html
+
+
+def test_app_tab_omits_aria_current_when_not_selected(environment: Environment) -> None:
+    html = render(environment, MACROS + "app_tab %}{{ app_tab('IdeaPress', '/ideapress') }}")
+    assert "aria-current" not in html
+
+
+def test_meter_is_a_labelled_role_meter_with_a_text_value(environment: Environment) -> None:
+    html = render(
+        environment,
+        MACROS + "meter %}{{ meter('GPU', '61%', percent=61) }}",
+    )
+    assert 'role="meter"' in html
+    assert 'aria-valuenow="61"' in html
+    assert 'aria-valuemin="0"' in html
+    assert 'aria-valuemax="100"' in html
+    assert "61%" in html
+
+
+def test_meter_with_no_percent_renders_no_role_meter_element(environment: Environment) -> None:
+    """UNSUPPORTED (ADR-0016): a meter fed no percentage never claims a number it does not have."""
+    html = render(environment, MACROS + "meter %}{{ meter('GPU', '—') }}")
+    assert 'role="meter"' not in html
+    assert "—" in html
+
+
+def test_log_pane_without_a_stream_url_renders_no_htmx_attribute(
+    environment: Environment,
+) -> None:
+    """ADR-0020 rule 5: the pane's initial markup works with no JavaScript and no stream."""
+    html = render(environment, MACROS + "log_pane %}{{ log_pane('run-log') }}")
+    assert 'id="run-log"' in html
+    assert "sse-connect" not in html
+    assert 'role="log"' in html
+    assert 'aria-live="polite"' in html
+    assert "data-log-pane-pause" in html
+
+
+def test_log_pane_with_a_stream_url_wires_the_sse_swap_region(environment: Environment) -> None:
+    html = render(
+        environment, MACROS + "log_pane %}{{ log_pane('run-log', stream_url='/runs/1/stream') }}"
+    )
+    assert 'hx-ext="sse"' in html
+    assert 'sse-connect="/runs/1/stream"' in html
+    assert 'sse-swap="log"' in html
+    assert 'hx-swap="beforeend"' in html
+
+
+def test_side_nav_marks_the_selected_item_and_renders_the_footer(
+    environment: Environment,
+) -> None:
+    html = render(
+        environment,
+        MACROS + "side_nav %}{{ side_nav(sections, footer='loadcoach 1.3.0 · :8766') }}",
+        sections=[
+            {
+                "title": "LoadCoach",
+                "links": [
+                    {"label": "Overview", "href": "/", "selected": True},
+                    {"label": "Models", "href": "/models"},
+                ],
+            }
+        ],
+    )
+    assert 'aria-label="Sections"' in html
+    assert "LoadCoach" in html
+    assert '<a href="/" aria-current="page">Overview</a>' in html
+    assert '<a href="/models">Models</a>' in html
+    assert "loadcoach 1.3.0" in html
+
+
+def test_telemetry_bar_with_no_meters_renders_exactly_as_0_2_2(environment: Environment) -> None:
+    """The gold standard itself: an application that never passes `meters` sees no change."""
+    without = render(environment, MACROS + "telemetry_bar %}{{ telemetry_bar('/stream') }}")
+    assert 'role="meter"' not in without
+    assert without.count("telemetry-sep") == 3
+
+
+def test_telemetry_bar_appends_extra_meters_after_the_fixed_fields(
+    environment: Environment,
+) -> None:
+    html = render(
+        environment,
+        MACROS + "telemetry_bar %}{{ telemetry_bar('/stream', meters=meters) }}",
+        meters=[{"label": "QUEUE", "value_text": "2 active", "percent": 40}],
+    )
+    assert 'role="meter"' in html
+    assert "QUEUE" in html
+    assert "2 active" in html
+
+
 @pytest.mark.parametrize("theme", THEMES)
 def test_the_base_shell_renders_in_both_themes_with_the_theme_selector(
     environment: Environment, theme: str

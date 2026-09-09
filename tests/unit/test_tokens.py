@@ -37,6 +37,12 @@ UI_PAIRS = [
     ("--mw-border-strong", "--mw-surface", 3.0, "the boundary of an interactive control"),
     ("--mw-accent", "--mw-surface", 3.0, "the focus ring against a card"),
     ("--mw-accent", "--mw-bg", 3.0, "the focus ring against the page"),
+    # The status-dot vocabulary (design brief §3): the dot alone carries the colour, the word
+    # beside it stays plain text, so each dot is a UI boundary — 3:1 — not a text obligation.
+    ("--mw-status-ok", "--mw-surface", 3.0, "the ok status dot"),
+    ("--mw-status-degraded", "--mw-surface", 3.0, "the degraded status dot"),
+    ("--mw-status-stopped", "--mw-surface", 3.0, "the stopped status dot"),
+    ("--mw-status-unknown", "--mw-surface", 3.0, "the unknown status dot"),
     ("--mw-chart-1", "--mw-surface", 3.0, "the first chart series"),
     ("--mw-chart-2", "--mw-surface", 3.0, "the second chart series"),
     ("--mw-chart-3", "--mw-surface", 3.0, "the third chart series"),

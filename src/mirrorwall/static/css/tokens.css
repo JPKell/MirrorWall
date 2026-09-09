@@ -13,7 +13,27 @@
  * `--mw-accent` and its three relatives are the per-application override point: an application
  * sets them in its own stylesheet, after this file, and changes nothing else. Everything derived
  * from the accent — focus rings, primary buttons, the first chart series — follows.
+ *
+ * 0.3 vendors JetBrains Mono (THIRD_PARTY_NOTICES.md) so the data font in --mw-font-data is no
+ * longer a maybe: these two @font-face rules are the only place this package loads a network-free
+ * font file, referenced by a path relative to this stylesheet so the digest query string an
+ * application's asset_url call puts on tokens.css itself never touches the font's own URL.
  */
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("../fonts/jetbrains-mono/JetBrainsMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("../fonts/jetbrains-mono/JetBrainsMono-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
   color-scheme: light dark;
@@ -37,13 +57,40 @@
   --mw-success: #157F3C;  --mw-warning: #8A5300;
   --mw-danger:  #B3261E;  --mw-info:    #0B6E7F;
 
+  /* The status-dot vocabulary (0.3, WeightRoomGym design brief §3): ok/degraded/stopped/unknown,
+     one dot colour each — distinct from the queued/running/failed vocabulary above, which the
+     `status`/`badge` macros still carry unchanged. Light values derive from the palette entries
+     named in the design brief; the dot alone carries the colour (3:1, a UI boundary), its word
+     stays plain text, so no new text-contrast obligation follows it. */
+  --mw-status-ok:       #157F3C;  --mw-status-degraded: #8A5300;
+  --mw-status-stopped:  #6B7787;  --mw-status-unknown:  #74849A;
+
   --mw-radius-sm: 6px; --mw-radius-md: 8px; --mw-radius-lg: 12px;
   --mw-space-1: 4px; --mw-space-2: 8px;  --mw-space-3: 12px;
   --mw-space-4: 16px; --mw-space-6: 24px; --mw-space-8: 32px; --mw-space-12: 48px;
-  --mw-header-h: 48px; --mw-telemetry-h: 34px; --mw-row-h: 36px;
+  --mw-header-h: 48px; --mw-telemetry-h: 34px;
+
+  /* --mw-row-h keeps 0.2.2's value: every application renders at the same row height until it
+     opts in. --mw-row-h-comfortable names that same value so a page can ask for it explicitly;
+     a table asking for `density="dense"` overrides --mw-row-h locally instead
+     (`table[data-density="dense"]`, tables.css), which is what lets one table run dense beside
+     others that do not. */
+  --mw-row-h: 36px;
+  --mw-row-h-comfortable: 36px;
+
+  /* Scale and density additions for the dense console (WeightRoomGym design brief §2). Additive:
+     nothing existing reads these yet, so no current page's rendering changes by their presence. */
+  --mw-font-size-base:  13px;
+  --mw-font-size-sm:    12px;
+  --mw-font-size-xs:    11px;
+  --mw-font-size-title: 18px;
+  --mw-font-size-figure: 22px;
+  --mw-sidebar-w: 200px;
+  --mw-label-tracking: 0.04em;
+  --mw-meter-h: 6px;
 
   --mw-font-ui: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --mw-font-data: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  --mw-font-data: "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
 
   /* Chart palette, colour-blind checked; order matters. */
   --mw-chart-1: #2F80ED; --mw-chart-2: #0E8074; --mw-chart-3: #6D3FD1;
@@ -69,6 +116,8 @@
     --mw-accent-soft:   #16283D;
     --mw-success: #4ADE80;  --mw-warning: #FBBF24;
     --mw-danger:  #F87171;  --mw-info:    #38BDF8;
+    --mw-status-ok:      #4ADE80;  --mw-status-degraded: #FBBF24;
+    --mw-status-stopped: #94A3B8;  --mw-status-unknown:  #5A6E90;
     --mw-chart-1: #6BA6F5; --mw-chart-2: #2DD4BF; --mw-chart-3: #A78BFA;
     --mw-chart-4: #FBBF24; --mw-chart-5: #F87171; --mw-chart-6: #4ADE80;
   }
@@ -90,6 +139,8 @@
   --mw-accent-soft:   #16283D;
   --mw-success: #4ADE80;  --mw-warning: #FBBF24;
   --mw-danger:  #F87171;  --mw-info:    #38BDF8;
+  --mw-status-ok:      #4ADE80;  --mw-status-degraded: #FBBF24;
+  --mw-status-stopped: #94A3B8;  --mw-status-unknown:  #5A6E90;
   --mw-chart-1: #6BA6F5; --mw-chart-2: #2DD4BF; --mw-chart-3: #A78BFA;
   --mw-chart-4: #FBBF24; --mw-chart-5: #F87171; --mw-chart-6: #4ADE80;
 }

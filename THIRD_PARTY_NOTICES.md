@@ -5,7 +5,33 @@ at page load), so anything it ships must be recorded here with a licence and a c
 
 ## Vendored runtime assets
 
-**None as of 0.2.0.**
+### htmx 2.0.10
+
+`static/vendor/htmx/htmx.min.js` — the core library. Licence: 0BSD (`static/vendor/htmx/LICENSE`).
+Source: https://unpkg.com/htmx.org@2.0.10/dist/htmx.min.js
+
+### htmx-ext-sse 2.2.2
+
+`static/vendor/htmx/htmx-ext-sse.js` — the Server Sent Events extension, which every `sse-swap`
+region in the design brief's components (`log_pane`, and any application page that opts into
+htmx) depends on. Same licence and directory as htmx itself: `static/vendor/htmx/LICENSE`.
+Source: https://unpkg.com/htmx-ext-sse@2.2.2/sse.js
+
+Both files are vendored under ADR-0128 (`WeightRoom/docs/adr/0128-…`): pinned, served from this
+package with the same content-hashed URL every asset gets, no CDN, no fetch at runtime. Combined
+they are under 20 KB gzipped, the budget the ADR sets.
+
+### JetBrains Mono 2.304 (via `@fontsource/jetbrains-mono` 5.2.5)
+
+`static/fonts/jetbrains-mono/JetBrainsMono-Regular.woff2` and
+`static/fonts/jetbrains-mono/JetBrainsMono-Bold.woff2` — the data font
+`--mw-font-data` now names first (design brief §2), loaded through the two `@font-face` rules at
+the top of `tokens.css` by a path relative to that stylesheet, so no application configuration
+is needed to see it. Licence: SIL Open Font License 1.1
+(`static/fonts/jetbrains-mono/LICENSE`). Source:
+https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.2.5/files/
+
+## Not vendored
 
 That is a design outcome, not an omission:
 

@@ -75,6 +75,47 @@ footer {
   font-size: 12px;
 }
 
+/* App tab (design brief §4, §5): a top-bar link to a peer application, dot-plus-label, with the
+   selected tab on the shared soft-accent background and a 2 px underline. */
+.app-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mw-space-1);
+  padding: var(--mw-space-1) var(--mw-space-2);
+  border-radius: var(--mw-radius-sm);
+  color: var(--mw-text-muted);
+  text-decoration: none;
+}
+.app-tab[aria-current="page"] {
+  background: var(--mw-accent-soft);
+  color: var(--mw-text);
+  box-shadow: inset 0 -2px var(--mw-accent);
+}
+
+/* Left menu (design brief §4, §5): a fixed-width, sectioned nav with a label-style section title
+   and a footer slot. `--mw-sidebar-w` is the width an application's own layout applies; this file
+   only styles the macro's own markup, not the grid it sits in. */
+.side-nav-section + .side-nav-section { margin-top: var(--mw-space-4); }
+.side-nav-title {
+  margin: 0 0 var(--mw-space-1);
+  font-size: var(--mw-font-size-xs);
+  font-weight: 600;
+  letter-spacing: var(--mw-label-tracking);
+  text-transform: uppercase;
+  color: var(--mw-text-subtle);
+}
+.side-nav ul { list-style: none; margin: 0; padding: 0; }
+.side-nav a {
+  display: block;
+  padding: var(--mw-space-1) var(--mw-space-2);
+  border-radius: var(--mw-radius-sm);
+  text-decoration: none;
+  color: var(--mw-text);
+}
+.side-nav a[aria-current="page"] { background: var(--mw-accent-soft); }
+.side-nav hr { border: 0; border-top: 1px solid var(--mw-border); margin: var(--mw-space-4) 0; }
+.side-nav-footer { color: var(--mw-text-subtle); font-size: 11px; font-family: var(--mw-font-data); }
+
 @media (max-width: 767px) {
   body { padding: 0 var(--mw-space-3) var(--mw-space-8); }
   .card-grid { grid-template-columns: 1fr; }

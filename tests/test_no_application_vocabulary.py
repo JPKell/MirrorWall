@@ -134,10 +134,17 @@ def scannable(path: Path) -> str:
 
 
 def _shipped_files() -> list[Path]:
+    # `static/vendor/` is third-party source (htmx, ADR-0128): its naming is upstream's, not this
+    # package's, and a library that happens to use a common word like "queue" internally is not
+    # the failure mode this scan exists to catch. Every other vendoring rule still applies to it —
+    # the digest and licence tests in tests/unit/test_assets.py do not carry this exemption.
     return sorted(
         path
         for path in SOURCE_ROOT.rglob("*")
-        if path.is_file() and path.suffix in SCANNED_SUFFIXES and "__pycache__" not in path.parts
+        if path.is_file()
+        and path.suffix in SCANNED_SUFFIXES
+        and "__pycache__" not in path.parts
+        and "vendor" not in path.parts
     )
 
 
@@ -208,6 +215,10 @@ def test_no_component_macro_has_an_application_shaped_required_parameter() -> No
         "drawer_id",
         "dialog_id",
         "table_id",
+        "pane_id",
+        "href",
+        "value_text",
+        "sections",
     }
     for signature in re.findall(r"\{% macro (\w+)\(([^)]*)\)", macros):
         macro_name, parameters = signature

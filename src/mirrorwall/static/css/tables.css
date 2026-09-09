@@ -27,3 +27,13 @@ th, td {
 tbody tr:hover { background: var(--mw-surface-hover); }
 td.numeric, th.numeric { font-variant-numeric: tabular-nums; text-align: right; }
 .row-count { color: var(--mw-text-muted); font-size: 12px; }
+
+/* Dense mode (design brief §2, §5: `table(density="dense")`). Scoped to the table that opts in —
+   `--mw-row-h` is a custom property, so setting it here cascades to that table's own th/td and
+   nowhere else, and a page with both a dense and a comfortable table renders both correctly. */
+table[data-density="dense"] { --mw-row-h: 32px; }
+table[data-density="dense"] thead th {
+  font-size: var(--mw-font-size-xs);
+  letter-spacing: var(--mw-label-tracking);
+  text-transform: uppercase;
+}
