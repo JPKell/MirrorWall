@@ -101,12 +101,18 @@
     setMeter(bar, "vram", ratio(gpu.vram_used_bytes, gpu.vram_total_bytes));
   }
 
+  var handle = null;
+
+  // Connect the bar to its stream, once. Returns the open handle, or null with no bar, no URL or
+  // no SSE client. Called again while connected it returns the same handle: a toggle pressed twice
+  // never stacks a second EventSource.
   function wire() {
+    if (handle !== null) { return handle; }
     var bar = global.document && global.document.getElementById("mw-telemetry-bar");
     if (!bar) { return null; }
     var url = bar.getAttribute("data-telemetry-url");
     if (!url || !global.mirrorwallSse) { return null; }
-    return global.mirrorwallSse.connect(url, {
+    handle = global.mirrorwallSse.connect(url, {
       "telemetry.sampled": function (payload) {
         var snapshot = payload.data || payload;
         apply(bar, snapshot);
@@ -115,15 +121,32 @@
         bar.dispatchEvent(new CustomEvent("mw:telemetry", { detail: snapshot }));
       }
     });
+    return handle;
   }
 
-  global.mirrorwallTelemetry = { apply: apply, wire: wire };
+  // Close the stream. A hidden bar has no use for frames, and a server that polls per subscriber
+  // has no reason to keep polling for it.
+  function unwire() {
+    if (handle !== null) {
+      handle.close();
+      handle = null;
+    }
+  }
+
+  // Auto-connect only a bar that is rendered: an application may hide it before first paint (a
+  // remembered preference), and a bar nobody can see must not open a stream.
+  function autoWire() {
+    var bar = global.document.getElementById("mw-telemetry-bar");
+    if (bar && bar.getClientRects().length > 0) { wire(); }
+  }
+
+  global.mirrorwallTelemetry = { apply: apply, wire: wire, unwire: unwire };
 
   if (global.document) {
     if (global.document.readyState === "loading") {
-      global.document.addEventListener("DOMContentLoaded", wire);
+      global.document.addEventListener("DOMContentLoaded", autoWire);
     } else {
-      wire();
+      autoWire();
     }
   }
 })(typeof window === "undefined" ? globalThis : window);

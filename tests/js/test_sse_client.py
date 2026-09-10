@@ -234,6 +234,53 @@ def test_the_telemetry_module_renders_an_em_dash_with_a_reason_never_zero() -> N
     assert rendered["gpu_meter"] == "0"
 
 
+def test_the_telemetry_stream_opens_once_closes_on_unwire_and_skips_a_hidden_bar() -> None:
+    """A bar nobody can see opens no stream, and toggling never stacks a second EventSource."""
+    assert NODE is not None
+    sse = (PACKAGE_STATIC_DIR / "js" / "sse.js").read_text()
+    telemetry = (PACKAGE_STATIC_DIR / "js" / "telemetry.js").read_text()
+    script = (
+        "globalThis.window = globalThis;\n"
+        "const opened = [];\n"
+        "globalThis.EventSource = class {\n"
+        "  constructor(url) { this.url = url; this.closed = false; opened.push(this); }\n"
+        "  addEventListener() {}\n"
+        "  close() { this.closed = true; }\n"
+        "};\n"
+        "let rects = [];\n"
+        "const bar = { getAttribute: () => '/stream', getClientRects: () => rects,\n"
+        "  querySelector: () => null, dispatchEvent() {} };\n"
+        "globalThis.document = { readyState: 'complete', getElementById: () => bar,\n"
+        "  addEventListener() {} };\n"
+        f"const telemetrySource = {json.dumps(telemetry)};\n"
+        f"{sse}\n"
+        "(0, eval)(telemetrySource);\n"
+        "const t = globalThis.mirrorwallTelemetry;\n"
+        "const afterLoad = opened.length;\n"
+        "t.wire(); t.wire();\n"
+        "const afterTwoWires = opened.length;\n"
+        "t.unwire();\n"
+        "const closed = opened[0].closed;\n"
+        "t.unwire(); t.wire();\n"
+        "const afterRewire = opened.length;\n"
+        "rects = [{}];\n"
+        "(0, eval)(telemetrySource);\n"
+        "const autoWired = opened.length - afterRewire;\n"
+        "const result = { afterLoad, afterTwoWires, closed, afterRewire, autoWired };\n"
+        "console.log(JSON.stringify(result));\n"
+    )
+    completed = subprocess.run(  # noqa: S603 — fixed argv, script supplied inline
+        [NODE, "-e", script], capture_output=True, text=True, check=False, timeout=30
+    )
+    assert completed.returncode == 0, completed.stderr
+    result = json.loads(completed.stdout.strip().splitlines()[-1])
+    assert result["afterLoad"] == 0  # hidden before first paint: no stream at all
+    assert result["afterTwoWires"] == 1  # wire() twice is still one EventSource
+    assert result["closed"] is True  # unwire() closes it
+    assert result["afterRewire"] == 2  # a second unwire() is harmless; wire() reopens once
+    assert result["autoWired"] == 1  # a rendered bar still connects on load, as before
+
+
 def test_the_harness_would_notice_a_broken_module(tmp_path: Path) -> None:
     """A harness that passes on a module that does nothing proves nothing."""
     broken = tmp_path / "js"

@@ -20,6 +20,9 @@ packaging and release standards §3.
 
 ### Added
 
+- `mirrorwallTelemetry.unwire()` closes the bar's stream, and `wire()` is idempotent — one
+  `EventSource` however often it is called. The module auto-connects only a bar that is rendered,
+  so an application can hide the bar before first paint without opening a stream for it.
 - `telemetry.js` re-dispatches each frame on the bar as a `mw:telemetry` event (`detail` is the
   snapshot), so an application's own fields read the same stream rather than opening a second
   `EventSource` to it.
