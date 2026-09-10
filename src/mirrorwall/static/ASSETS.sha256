@@ -3,7 +3,7 @@
 # Verified by tests/unit/test_assets.py, which recomputes every line and fails on a mismatch.
 23df2e734fd7b5017c1632b500bd06e9ea330d341c8baa01604af3bd923a8612  ./css/charts.css
 997ef52962e91ab54d482c3155c2538cab5887a31f4da8657eb80901f0c4d0d3  ./css/components.css
-050ca8a06abc719e9e9726433adb47bde008dead9173d4b973bf9370da597497  ./css/layout.css
+bca5613f699ca37cc61a464c92182d12802a75c51aa003cb17848ddbb3968054  ./css/layout.css
 d9a6472d22b65dc5cf80cfa857001b977adab58f933443b29a08dc3a0b814ccb  ./css/reset.css
 e152f39ff0b3dea2a8aae81ed8d08c8aad6ae7e2e5cedba77c89f21b51f8a09c  ./css/tables.css
 1b3290ee2d2340479ba72315767a7810cff5bd24a0cdfe3ed0dbb89651534dee  ./css/tokens.css
@@ -18,9 +18,9 @@ e983bbb84541acd28e8a33b95af764d80335bcfaeac37baa93f90099ceb11efd  ./js/dialog.js
 44e445cfb432fbbed90e1fe0858391ad504dafa8e80188f0c3e97f0bd2c1de9e  ./js/log_pane.js
 6be2282dc67b6ce7a02c880a3f6aa7168a470034861de7ff2795bdcaddb5a7c0  ./js/sse.js
 1ef442babc82d822ac105bf31087e1a1c2dd3e11ea3ce0fbcb840a8203917613  ./js/table.js
-d5c612ae7db25b4c5aa427d08bb7c5207ac64c76a8051f4da425c92437a55506  ./js/telemetry.js
+23dff50b9c3eed8b8fb5cb433171944465115388cd7485afaae504bf9f1acd27  ./js/telemetry.js
 ce155ac4d187c911337bf8f6d8d6991ae6121db0469d492803b05db23b66dddf  ./js/theme.js
 9f6280038c69be935bf574ee6f791118fd221a9d3223d0bd0dc2def35a3ce365  ./js/toast.js
+d3d2456f76414f2456104660ebd65aff1c04cd7966b942bdabd63f3cdb316a38  ./vendor/htmx/LICENSE
 83eca6fa0611fe2b0bf1700b424b88b5eced38ef448ef9760a2ea08fbc875611  ./vendor/htmx/htmx-ext-sse.js
 71ea67185bfa8c98c39d31717c6fce5d852370fcdfd129db4543774d3145c0de  ./vendor/htmx/htmx.min.js
-d3d2456f76414f2456104660ebd65aff1c04cd7966b942bdabd63f3cdb316a38  ./vendor/htmx/LICENSE

@@ -2,17 +2,32 @@
 
    Every field starts as an em dash, and the JS module replaces it only where a value was
    actually reported. It never renders 0 for an absent reading (UI standards §3): a machine that
-   could not measure its GPU temperature did not measure it as zero degrees. #}
+   could not measure its GPU temperature did not measure it as zero degrees.
+
+   `telemetry_field_meters` (design brief §4, §5) opts a field group into the artboard's inline
+   track — `["cpu", "ram", "gpu", "vram"]` for the dense console. It is off by default because
+   design.md §6 is explicit that nothing in 0.3 changes an application's rendering until that
+   application asks: an app that never passes it renders exactly the bar it rendered under 0.2.2.
+   The track carries no `role="meter"` and no width until telemetry.js has a real percentage, so
+   an unsupported reading (ADR-0016) shows an empty track beside its em dash, never a full bar
+   and never a bar sitting at zero. #}
+{%- set field_meters = telemetry_field_meters | default([]) %}
 <div class="telemetry-bar" id="mw-telemetry-bar" aria-label="System telemetry"
      data-telemetry-url="{{ telemetry_stream_url | default('') }}">
   <span class="telemetry-field" data-group="cpu">
     <span class="telemetry-label">CPU</span>
+    {%- if "cpu" in field_meters %}
+    <span class="telemetry-track"><span class="telemetry-fill" data-meter="cpu"></span></span>
+    {%- endif %}
     <span class="telemetry-value telemetry-value--percent" data-field="cpu_percent">—</span>
     <span class="telemetry-value telemetry-value--temp" data-field="cpu_temperature_c">—</span>
   </span>
   <span class="telemetry-sep" aria-hidden="true"></span>
   <span class="telemetry-field" data-group="ram">
     <span class="telemetry-label">RAM</span>
+    {%- if "ram" in field_meters %}
+    <span class="telemetry-track"><span class="telemetry-fill" data-meter="ram"></span></span>
+    {%- endif %}
     <span class="telemetry-value" data-field="ram_used_bytes">—</span>
     <span class="telemetry-unit">/</span>
     <span class="telemetry-value" data-field="ram_total_bytes">—</span>
@@ -20,6 +35,9 @@
   <span class="telemetry-sep" aria-hidden="true"></span>
   <span class="telemetry-field" data-group="gpu">
     <span class="telemetry-label">GPU</span>
+    {%- if "gpu" in field_meters %}
+    <span class="telemetry-track"><span class="telemetry-fill" data-meter="gpu"></span></span>
+    {%- endif %}
     <span class="telemetry-value telemetry-value--percent" data-field="gpu_utilization_percent">—</span>
     <span class="telemetry-value telemetry-value--temp" data-field="gpu_temperature_c">—</span>
     <span class="telemetry-value telemetry-value--power" data-field="gpu_power_watts">—</span>
@@ -27,6 +45,9 @@
   <span class="telemetry-sep" aria-hidden="true"></span>
   <span class="telemetry-field" data-group="vram">
     <span class="telemetry-label">VRAM</span>
+    {%- if "vram" in field_meters %}
+    <span class="telemetry-track"><span class="telemetry-fill" data-meter="vram"></span></span>
+    {%- endif %}
     <span class="telemetry-value" data-field="gpu_vram_used_bytes">—</span>
     <span class="telemetry-unit">/</span>
     <span class="telemetry-value" data-field="gpu_vram_total_bytes">—</span>

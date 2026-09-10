@@ -7,6 +7,21 @@ packaging and release standards §3.
 
 ## [Unreleased]
 
+### Fixed
+
+- `side_nav`'s items are one per line again. The macro renders a `<nav>`, so `layout.css`'s own
+  `nav ul` flex row laid the menu out in columns; `.side-nav ul` now sets `display: block`.
+- `meter()`'s label had no style of its own and rendered as body text rather than the label style
+  the design brief specifies.
+
+### Added
+
+- The telemetry bar takes inline meters on its own fields: `telemetry_field_meters` opts a group
+  (`cpu`, `ram`, `gpu`, `vram`) into a track beside its label, and `telemetry.js` sizes the fill.
+  Off by default, so an application that does not ask for it renders exactly what it rendered
+  before. A field with no reading, or a ratio with no denominator, keeps an empty track and no
+  `role="meter"` — never a bar at zero (ADR-0016).
+
 ## [0.3.0] — 2026-09-09
 
 Phase 4: the WeightRoomGym design brief's dense-console tokens and seven generic components (row

@@ -171,15 +171,22 @@ def test_the_telemetry_module_renders_an_em_dash_with_a_reason_never_zero() -> N
     script = (
         "globalThis.window = globalThis;\n"
         "const fields = {};\n"
+        "const meters = {};\n"
+        "const node = (extra) => Object.assign({\n"
+        "  textContent: null, title: null,\n"
+        "  setAttribute(k, v) { this[k] = v; },\n"
+        "  removeAttribute(k) { this[k] = null; }\n"
+        "}, extra);\n"
         "const bar = {\n"
         "  getAttribute: () => '0',\n"
         "  querySelector: (selector) => {\n"
-        '    const name = selector.match(/data-field="([a-z_]+)"/)[1];\n'
-        "    return (fields[name] = fields[name] || {\n"
-        "      textContent: null, title: null,\n"
-        "      setAttribute(k, v) { this[k] = v; },\n"
-        "      removeAttribute(k) { this[k] = null; }\n"
-        "    });\n"
+        '    const field = selector.match(/data-field="([a-z_]+)"/);\n'
+        "    if (field !== null) { return (fields[field[1]] = fields[field[1]] || node({})); }\n"
+        '    const meter = selector.match(/data-meter="([a-z]+)"/);\n'
+        "    if (meter === null) { return null; }\n"
+        "    return (meters[meter[1]] = meters[meter[1]] || node({\n"
+        "      style: {}, parentNode: node({})\n"
+        "    }));\n"
         "  }\n"
         "};\n"
         f"{telemetry}\n"
@@ -195,7 +202,12 @@ def test_the_telemetry_module_renders_an_em_dash_with_a_reason_never_zero() -> N
         "  ram_used: fields.ram_used_bytes.textContent,\n"
         "  ram_total: fields.ram_total_bytes.textContent,\n"
         "  gpu: fields.gpu_temperature_c.textContent,\n"
-        "  gpu_title: fields.gpu_temperature_c.title\n"
+        "  gpu_title: fields.gpu_temperature_c.title,\n"
+        "  cpu_meter: meters.cpu.style.width,\n"
+        "  cpu_meter_now: meters.cpu.parentNode['aria-valuenow'],\n"
+        "  ram_meter: meters.ram.style.width,\n"
+        "  ram_meter_role: meters.ram.parentNode.role,\n"
+        "  gpu_meter: meters.gpu.style.width\n"
         "}));\n"
     )
     completed = subprocess.run(  # noqa: S603 — fixed argv, script supplied inline
@@ -212,6 +224,14 @@ def test_the_telemetry_module_renders_an_em_dash_with_a_reason_never_zero() -> N
     assert rendered["gpu"] == "—"
     assert "no GPU reported at index 0" in rendered["gpu_title"]
     assert "0" not in {rendered["cpu_temp"], rendered["ram_total"], rendered["gpu"]}
+    # The inline meters follow the same rule: a real reading draws a bar and announces it, and a
+    # reading with no denominator draws an empty track with no `role="meter"` rather than a bar
+    # sitting at zero, which reads as a measured idle.
+    assert rendered["cpu_meter"] == "42%"
+    assert rendered["cpu_meter_now"] == "42"
+    assert rendered["ram_meter"] == "0"
+    assert rendered["ram_meter_role"] is None
+    assert rendered["gpu_meter"] == "0"
 
 
 def test_the_harness_would_notice_a_broken_module(tmp_path: Path) -> None:

@@ -66,6 +66,23 @@ nav a[aria-current="page"] {
 .telemetry-value--power::after { content: "W"; }
 .telemetry-sep { border-left: 1px solid var(--mw-border); height: 1rem; }
 .telemetry-unit { color: var(--mw-text-muted); }
+.telemetry-track {
+  display: inline-block;
+  width: 44px;
+  height: var(--mw-meter-h);
+  border-radius: calc(var(--mw-meter-h) / 2);
+  background: var(--mw-surface-alt);
+  overflow: hidden;
+  align-self: center;
+}
+.telemetry-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: var(--mw-accent);
+}
+.telemetry-fill[data-band="warn"] { background: var(--mw-status-degraded); }
 
 footer {
   border-top: 1px solid var(--mw-border);
@@ -95,6 +112,14 @@ footer {
 /* Left menu (design brief §4, §5): a fixed-width, sectioned nav with a label-style section title
    and a footer slot. `--mw-sidebar-w` is the width an application's own layout applies; this file
    only styles the macro's own markup, not the grid it sits in. */
+.meter-label {
+  font-size: var(--mw-font-size-xs);
+  font-weight: 600;
+  letter-spacing: var(--mw-label-tracking);
+  text-transform: uppercase;
+  color: var(--mw-text-subtle);
+}
+
 .side-nav-section + .side-nav-section { margin-top: var(--mw-space-4); }
 .side-nav-title {
   margin: 0 0 var(--mw-space-1);
@@ -104,7 +129,7 @@ footer {
   text-transform: uppercase;
   color: var(--mw-text-subtle);
 }
-.side-nav ul { list-style: none; margin: 0; padding: 0; }
+.side-nav ul { display: block; list-style: none; margin: 0; padding: 0; }
 .side-nav a {
   display: block;
   padding: var(--mw-space-1) var(--mw-space-2);
