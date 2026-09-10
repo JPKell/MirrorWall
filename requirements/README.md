@@ -21,7 +21,7 @@ what the build actually used.
 ## Why this lock did not exist until 2026-08-29
 
 `pyproject.toml` requires `setspec>=0.4,<0.5`, and `setspec 0.4.0` was one of the three releases
-prepared during M4 and held unpublished (`docs/history/M4_HANDOFF.md`, entries WDB3, SS6, LCX23). PyPI carried
+prepared during M4 and held unpublished (`docs/history/handoffs/M4_HANDOFF.md`, entries WDB3, SS6, LCX23). PyPI carried
 0.2.0 and 0.3.0 only, so `pip-compile` could not resolve this repository's dependency set at all —
 `No matching distribution found for setspec<0.5,>=0.4` — and neither could any CI job installing
 from an index. `setspec 0.4.0` published on 2026-08-29; this lock was compiled immediately after,
