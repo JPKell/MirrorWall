@@ -20,6 +20,9 @@ packaging and release standards §3.
 
 ### Added
 
+- `base.html` wraps the theme select in a `theme_control` block, so an application can render the
+  same `data-theme-select` inside its own layout (a collapsible top bar) instead of beside it.
+  Output is unchanged for an application that does not override the block.
 - The telemetry bar takes inline meters on its own fields: `telemetry_field_meters` opts a group
   (`cpu`, `ram`, `gpu`, `vram`) into a track beside its label, and `telemetry.js` sizes the fill.
   Off by default, so an application that does not ask for it renders exactly what it rendered

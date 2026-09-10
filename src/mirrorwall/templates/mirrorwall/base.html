@@ -44,6 +44,10 @@
     <div class="masthead">
       <h1>{{ product_name }}{% if product_version %} <span class="version">v{{ product_version }}</span>{% endif %}</h1>
       {% block header_extra %}{% endblock %}
+      {#- `theme_control` lets an application place the select itself — inside a collapsible top
+         bar, say — without a second select for theme.js to find. Overriding it to empty and
+         rendering the same `data-theme-select` elsewhere is the whole contract. #}
+      {% block theme_control %}
       <div class="field">
         <label for="mw-theme-select">Theme</label>
         <select id="mw-theme-select" data-theme-select data-theme-storage-key="{{ theme_storage_key }}">
@@ -52,6 +56,7 @@
           <option value="dark">Dark</option>
         </select>
       </div>
+      {% endblock %}
     </div>
     {% block navigation %}
     {% if nav_items %}
