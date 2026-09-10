@@ -9,6 +9,10 @@ packaging and release standards §3.
 
 ### Fixed
 
+- `log_pane` closes its stream on the producer's terminal frame (`sse-close`, defaulting to
+  `log.closed`, overridable per producer). Without it a stream the server ended deliberately is
+  indistinguishable from a dropped connection, and the pane reconnected to it for as long as the
+  page stayed open.
 - `side_nav`'s items are one per line again. The macro renders a `<nav>`, so `layout.css`'s own
   `nav ul` flex row laid the menu out in columns; `.side-nav ul` now sets `display: block`.
 - `meter()`'s label had no style of its own and rendered as body text rather than the label style

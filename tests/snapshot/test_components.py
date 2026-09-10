@@ -418,6 +418,14 @@ def test_log_pane_with_a_stream_url_wires_the_sse_swap_region(environment: Envir
     assert 'sse-connect="/runs/1/stream"' in html
     assert 'sse-swap="log"' in html
     assert 'hx-swap="beforeend"' in html
+    # Without this the pane reconnects to a stream the server deliberately ended, forever: an
+    # EventSource cannot tell that apart from a dropped connection.
+    assert 'sse-close="log.closed"' in html
+    assert 'sse-close="run.finished"' in render(
+        environment,
+        MACROS + "log_pane %}{{ log_pane('run-log', stream_url='/runs/1/stream',"
+        " close_event='run.finished') }}",
+    )
 
 
 def test_side_nav_marks_the_selected_item_and_renders_the_footer(

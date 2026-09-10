@@ -255,12 +255,19 @@
 </span>
 {%- endmacro %}
 
-{% macro log_pane(pane_id, stream_url=None, max_lines=500, label="Log") -%}
+{% macro log_pane(pane_id, stream_url=None, max_lines=500, label="Log", close_event="log.closed") -%}
 {#- Swaps are htmx, behaviour is `log_pane.js` (ADR-0128 rule 6): the bounded buffer, the
    *dropped N lines* frame and the pause button all live in the module; this markup is what it
-   operates on, plus the initial, JavaScript-free state (ADR-0020 rule 5). -#}
+   operates on, plus the initial, JavaScript-free state (ADR-0020 rule 5).
+
+   `close_event` is not optional in practice. An `EventSource` cannot tell a stream the server
+   ended deliberately from a connection that dropped, so it reconnects to both — and a server that
+   ends the stream again on the next request has a client that requests it forever, at whatever
+   the extension's backoff has reached. `sse-close` is the only thing that stops that loop, so a
+   producer whose terminal frame is named something else passes its own name rather than leaving
+   the default unmatched. -#}
 <div class="log-pane" id="{{ pane_id }}" data-log-pane data-max-lines="{{ max_lines }}"
-     {%- if stream_url %} hx-ext="sse" sse-connect="{{ stream_url }}"{% endif %}>
+     {%- if stream_url %} hx-ext="sse" sse-connect="{{ stream_url }}" sse-close="{{ close_event }}"{% endif %}>
   <div class="log-pane-toolbar">
     <span>{{ label }}</span>
     <span>
