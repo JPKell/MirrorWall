@@ -183,6 +183,48 @@ def test_a_valid_double_submit_succeeds_and_the_body_still_reaches_the_route() -
     assert REACHED == ["/x"]
 
 
+def test_a_multipart_form_with_a_valid_token_succeeds_and_the_body_still_reaches_the_route() -> (
+    None
+):
+    """A file upload is a form post too. Its token used to be searched for with ``parse_qs``,
+    which cannot read a multipart body, so every upload was refused as ``CSRF_FAILED``."""
+    token = issue_csrf_token()
+    with TestClient(_app(csrf=True)) as client:
+        client.cookies.set(CSRF_COOKIE_NAME, token)
+        response = client.post(
+            "/x",
+            data={CSRF_FIELD_NAME: token},
+            files={"file": ("notes.md", b"# hello", "text/markdown")},
+        )
+    assert response.status_code == 200
+    assert "# hello" in response.text
+    assert REACHED == ["/x"]
+
+
+def test_a_multipart_form_with_a_wrong_or_missing_token_is_rejected() -> None:
+    token = issue_csrf_token()
+    with TestClient(_app(csrf=True)) as client:
+        client.cookies.set(CSRF_COOKIE_NAME, token)
+        wrong = client.post(
+            "/x", data={CSRF_FIELD_NAME: "guessed"}, files={"file": ("a.md", b"a", "text/plain")}
+        )
+        missing = client.post("/x", files={"file": ("a.md", b"a", "text/plain")})
+    assert (wrong.status_code, missing.status_code) == (403, 403)
+    assert REACHED == []
+
+
+def test_a_file_part_named_like_the_token_cannot_stand_in_for_the_field() -> None:
+    """Only a plain field counts: an uploaded *file* named ``csrf_token`` is not the token."""
+    token = issue_csrf_token()
+    with TestClient(_app(csrf=True)) as client:
+        client.cookies.set(CSRF_COOKIE_NAME, token)
+        response = client.post(
+            "/x", files={CSRF_FIELD_NAME: ("csrf_token", token.encode(), "text/plain")}
+        )
+    assert response.status_code == 403
+    assert REACHED == []
+
+
 def test_a_json_post_is_exempt_while_cors_is_disabled_and_can_be_switched_off() -> None:
     """ADR-0026 §2: exempt on stated grounds, and the grounds are one argument to withdraw."""
     with TestClient(_app(csrf=True)) as client:

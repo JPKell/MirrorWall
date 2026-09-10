@@ -244,7 +244,10 @@ class CsrfMiddleware:
             return
 
         body, receive = await _buffered_body(receive)
-        submitted = parse_qs(body.decode("utf-8", "replace")).get(self._field_name, [""])[0]
+        if content_type == "multipart/form-data":
+            submitted = _multipart_field(body, headers.get("content-type", ""), self._field_name)
+        else:
+            submitted = parse_qs(body.decode("utf-8", "replace")).get(self._field_name, [""])[0]
         expected = _cookie(headers.get("cookie", ""), self._cookie_name)
         if not expected or not submitted or not hmac.compare_digest(submitted, expected):
             await self._reject(scope, receive, send, "The form's CSRF token is missing or wrong.")
@@ -275,6 +278,49 @@ async def _reject(  # noqa: PLR0913 — one call site per rejection, every field
         headers={"X-Request-ID": request_id, "Cache-Control": "no-store"},
     )
     await response(scope, receive, send)
+
+
+def _multipart_field(body: bytes, content_type: str, name: str) -> str:
+    """The value of one plain (non-file) field in a ``multipart/form-data`` body, or ``""``.
+
+    Before this, a multipart post was accepted as a form content type and then searched with
+    ``parse_qs``, which cannot read a multipart body, so its token was never found and every file
+    upload behind this middleware was refused as ``CSRF_FAILED``.
+
+    Deliberately narrow: only the boundary from the header, only a part whose disposition names
+    ``name`` with no ``filename``, and the first such part wins. A file part named ``csrf_token``
+    cannot stand in for the field.
+    """
+    boundary = ""
+    for parameter in content_type.split(";")[1:]:
+        key, _, value = parameter.strip().partition("=")
+        if key.lower() == "boundary":
+            boundary = value.strip().strip('"')
+    if not boundary:
+        return ""
+    # ponytail: splits the buffered body once; a scan that stops at the field would spare the copy
+    # on a very large upload, if the body cap is ever raised past what that costs.
+    for part in body.split(b"--" + boundary.encode("latin-1"))[1:]:
+        if part.startswith(b"--"):
+            break
+        head, separator, content = part.lstrip(b"\r\n").partition(b"\r\n\r\n")
+        if not separator:
+            continue
+        disposition = next(
+            (
+                line
+                for line in head.decode("latin-1").split("\r\n")
+                if line.lower().startswith("content-disposition:")
+            ),
+            "",
+        )
+        parameters: dict[str, str] = {}
+        for piece in disposition.split(";")[1:]:
+            key, _, raw = piece.strip().partition("=")
+            parameters[key.strip().lower()] = raw.strip().strip('"')
+        if parameters.get("name") == name and "filename" not in parameters:
+            return content.removesuffix(b"\r\n").decode("utf-8", "replace")
+    return ""
 
 
 def _cookie(header: str, name: str) -> str:

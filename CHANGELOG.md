@@ -9,6 +9,13 @@ packaging and release standards §3.
 
 ### Fixed
 
+- **`CsrfMiddleware` reads the token from a `multipart/form-data` body.** Multipart posts were
+  accepted as a form content type and then searched with `parse_qs`, which cannot read a multipart
+  body, so the `csrf_token` field was never found and **every file-upload form behind this
+  middleware was refused as `CSRF_FAILED`** — with a correct token, in a real browser. Only a
+  plain field counts: a file part named `csrf_token` cannot stand in for it. Found by
+  WeightRoomGym row W6 (chat attachments); row W8's GGUF drop-in would have hit it next.
+
 - `log_pane` closes its stream on the producer's terminal frame (`sse-close`, defaulting to
   `log.closed`, overridable per producer). Without it a stream the server ended deliberately is
   indistinguishable from a dropped connection, and the pane reconnected to it for as long as the
