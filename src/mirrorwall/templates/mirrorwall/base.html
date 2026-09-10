@@ -42,7 +42,11 @@
   <a class="skip-link" href="#content">Skip to content</a>
   <header>
     <div class="masthead">
-      <h1>{{ product_name }}{% if product_version %} <span class="version">v{{ product_version }}</span>{% endif %}</h1>
+      {#- `product_href` makes the product name a link home. The two `if`s wrap the unchanged name
+         markup rather than duplicating it, so an application that does not set it renders
+         byte-identically. -#}
+      {%- set product_link = product_href is defined and product_href %}
+      <h1>{% if product_link %}<a class="brand" href="{{ product_href }}">{% endif %}{{ product_name }}{% if product_version %} <span class="version">v{{ product_version }}</span>{% endif %}{% if product_link %}</a>{% endif %}</h1>
       {% block header_extra %}{% endblock %}
       {#- `theme_control` lets an application place the select itself — inside a collapsible top
          bar, say — without a second select for theme.js to find. Overriding it to empty and

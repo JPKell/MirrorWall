@@ -20,6 +20,8 @@ packaging and release standards §3.
 
 ### Added
 
+- `product_href` makes the product name in `base.html` a link home (`<a class="brand">`). Unset,
+  the heading renders exactly as before.
 - `base.html` wraps the theme select in a `theme_control` block, so an application can render the
   same `data-theme-select` inside its own layout (a collapsible top bar) instead of beside it.
   Output is unchanged for an application that does not override the block.

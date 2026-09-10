@@ -52,6 +52,19 @@ def test_shell_slots_have_defaults_but_the_product_name_does_not(environment: En
         bare.get_template("mirrorwall/base.html").render()
 
 
+def test_product_href_links_the_product_name_home_and_is_invisible_when_unset() -> None:
+    environment = create_template_environment(globals_={"product_name": "Example"})
+    base = environment.get_template("mirrorwall/base.html")
+    linked = base.render(product_version="1.0", product_href="/")
+    assert (
+        '<h1><a class="brand" href="/">Example <span class="version">v1.0</span></a></h1>' in linked
+    )
+    # Unset, the heading is exactly the markup it was before the slot existed.
+    plain = base.render(product_version="1.0")
+    assert '<h1>Example <span class="version">v1.0</span></h1>' in plain
+    assert 'class="brand"' not in plain
+
+
 def test_every_shared_filter_and_the_supported_test_are_registered(
     environment: Environment,
 ) -> None:
