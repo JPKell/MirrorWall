@@ -107,7 +107,13 @@
     var url = bar.getAttribute("data-telemetry-url");
     if (!url || !global.mirrorwallSse) { return null; }
     return global.mirrorwallSse.connect(url, {
-      "telemetry.sampled": function (payload) { apply(bar, payload.data || payload); }
+      "telemetry.sampled": function (payload) {
+        var snapshot = payload.data || payload;
+        apply(bar, snapshot);
+        // Re-dispatched on the bar so an application's own fields can read the same frame instead
+        // of opening a second EventSource to the same stream.
+        bar.dispatchEvent(new CustomEvent("mw:telemetry", { detail: snapshot }));
+      }
     });
   }
 

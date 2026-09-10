@@ -20,6 +20,9 @@ packaging and release standards §3.
 
 ### Added
 
+- `telemetry.js` re-dispatches each frame on the bar as a `mw:telemetry` event (`detail` is the
+  snapshot), so an application's own fields read the same stream rather than opening a second
+  `EventSource` to it.
 - `product_href` makes the product name in `base.html` a link home (`<a class="brand">`). Unset,
   the heading renders exactly as before.
 - `base.html` wraps the theme select in a `theme_control` block, so an application can render the
