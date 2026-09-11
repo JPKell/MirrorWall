@@ -2,7 +2,7 @@
 
 Design tokens, layout, component macros, SSE and JSON/error envelope helpers so the suite's applications look like one family without sharing a page.
 
-**Status:** `0.3.0` (prepared, unpublished) — Phases 1–4: design tokens, the layout shell, the
+**Status:** `0.3.1` (prepared, unpublished; `0.3.0` is on PyPI) — Phases 1–4: design tokens, the layout shell, the
 component macros, template filters, JSON and error envelopes, request-ID/Host/CSRF middleware,
 SSE with a gap-free replay-to-live handoff, static mounting with content-hashed URLs, the health
 primitives, and Phase 4's dense-console tokens (`status_dot`, `app_tab`, `meter`, `log_pane`,

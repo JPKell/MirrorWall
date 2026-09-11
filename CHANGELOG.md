@@ -7,6 +7,14 @@ packaging and release standards §3.
 
 ## [Unreleased]
 
+Nothing yet.
+
+## [0.3.1] — 2026-09-10
+
+What WeightRoomGym rows W3–W9 needed from MirrorWall after `0.3.0`, released so that
+WeightRoomGym's `ci.lock` can pin a published version (row W10; its CI had been red on the
+`mirrorwall==0.2.2` pin since W3).
+
 ### Fixed
 
 - **`CsrfMiddleware` reads the token from a `multipart/form-data` body.** Multipart posts were
