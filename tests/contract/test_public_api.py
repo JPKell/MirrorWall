@@ -62,6 +62,8 @@ _PUBLISHED_NAMES = frozenset(
         "issue_csrf_token",
         "json_pretty",
         "json_response",
+        "log_line",
+        "log_pane_response",
         "loopback_allowlist",
         "measurement",
         "mount_static",

@@ -58,6 +58,8 @@ from mirrorwall.sse import (
     EventSource,
     Subscription,
     format_frame,
+    log_line,
+    log_pane_response,
     parse_last_event_id,
     sse_response,
 )
@@ -99,6 +101,8 @@ __all__ = [
     "error_body",
     "error_response",
     "format_frame",
+    "log_line",
+    "log_pane_response",
     "health_payload",
     "is_supported_test",
     "issue_csrf_token",

@@ -55,7 +55,7 @@ fonts, icons).
 | Components | Jinja macros: button, input, select, checkbox/radio/switch, card (default or `figure`), table (dense or comfortable, mono columns), badge, status dot, app tab, tabs, drawer, dialog, toast, tooltip, progress, empty state, pagination, filter bar, key–value list, code/JSON viewer, chart container, log pane, side nav |
 | Telemetry bar | Macro + JS module consuming a generic telemetry payload, rendering `—` for unsupported values |
 | Theme | System/light/dark, no-flash bootstrap, `localStorage` persistence, chart re-theme hook |
-| SSE | Server helper (`sse_response`) and client module with reconnect and `Last-Event-ID` |
+| SSE | Server helpers (`sse_response`; `log_pane_response` for the log pane) and client module with reconnect and `Last-Event-ID` |
 | Envelopes | `json_response`, `error_response`, `paginated_response` producing SetSpec-shaped bodies |
 | Request IDs | Middleware: accept or generate, bind to logging context, return in `X-Request-ID` |
 | Static assets | Mounting, content-hashed URLs, correct cache headers, path-traversal-safe resolution |
@@ -104,6 +104,18 @@ def sse_response(source: EventSource, *, stream_id: str, last_event_id: str | No
     Every frame carries the SetSpec event envelope, except ``event: token``, which is bare — the one
     documented exception (:doc:`ADR-0025 §3 <../../adr/0025-envelope-boundaries>`).
     """
+
+def log_pane_response(source: EventSource, *, stream_id: str, last_event_id: str | None,
+                      render_line: Callable[[Event], str | None], generator: GeneratorInfo,
+                      terminal_events: frozenset[str] = ..., ...) -> StreamingResponse:
+    """The server half of ``log_pane`` (0.3.1, row WM2): the same replay-then-live loop as
+    ``sse_response`` over the same source, each event rendered by the application as one
+    ``event: log`` frame whose data is a ``log_line`` fragment, and ``event: log.closed`` after a
+    terminal event — the ``sse-close`` the pane needs to stop reconnecting. An event the renderer
+    answers ``None`` for is skipped."""
+
+def log_line(text: str, *, level: str = "info") -> str:
+    """The escaped ``.log-pane-line`` fragment a ``log`` frame carries."""
 
 # Middleware and mounting
 class RequestIdMiddleware: ...

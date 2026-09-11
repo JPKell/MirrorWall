@@ -570,3 +570,45 @@ async def test_without_terminal_events_the_stream_stays_open() -> None:
             saw += 1
     await body.aclose()
     assert saw >= 1
+
+
+# --- the log pane's stream (row WM2) ------------------------------------------------------
+
+
+@pytest.mark.anyio
+async def test_the_log_pane_stream_renders_lines_skips_what_the_renderer_declines_and_closes() -> (
+    None
+):
+    """One `log` frame per event whose data is the escaped `.log-pane-line` fragment, no
+    envelope; an event the renderer answers `None` for is skipped but still advances the id;
+    `log.closed` follows the terminal event."""
+    from mirrorwall.sse import log_line, log_pane_response
+
+    source = RecordingSource()
+    source.append(_event(1, "sample.started", note="<b>one</b>"))
+    source.append(_event(2, "token"))
+    source.append(_event(3, "result"))
+
+    def render(event: Event) -> str | None:
+        if event.type == "token":
+            return None
+        level = "error" if event.type == "result" else "info"
+        return log_line(f"{event.type} {event.payload['data'].get('note', '')}", level=level)
+
+    response = log_pane_response(
+        source,
+        stream_id="s",
+        last_event_id=None,
+        render_line=render,
+        generator=GENERATOR,
+        poll_interval_seconds=0.01,
+        terminal_events=frozenset({"result"}),
+    )
+    frames = [f for f in await _collect(response, stop_after=10) if not f.startswith(":")]
+    assert frames[0] == (
+        'id: 1\nevent: log\ndata: <div class="log-pane-line" data-level="info">'
+        "sample.started &lt;b&gt;one&lt;/b&gt;</div>\n\n"
+    )
+    assert frames[1].startswith("id: 3\nevent: log\n") and 'data-level="error"' in frames[1]
+    assert frames[2] == "event: log.closed\ndata: {}\n\n"
+    assert not any("token" in f for f in frames)

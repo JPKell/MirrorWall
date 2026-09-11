@@ -36,6 +36,7 @@ determined by its event name and its stream.
 
 from __future__ import annotations
 
+import html
 import json
 import logging
 import threading
@@ -52,7 +53,7 @@ from setspec import GeneratorInfo, SchemaVersion, dump_envelope
 from starlette.responses import StreamingResponse
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator, Iterator, Mapping, Sequence
+    from collections.abc import AsyncIterator, Callable, Iterator, Mapping, Sequence
     from contextlib import AbstractContextManager
 
 __all__ = [
@@ -69,6 +70,8 @@ __all__ = [
     "EventSource",
     "Subscription",
     "format_frame",
+    "log_line",
+    "log_pane_response",
     "parse_last_event_id",
     "sse_response",
 ]
@@ -355,8 +358,16 @@ async def _frames(
     replay_batch_size: int,
     poll_interval_seconds: float,
     terminal_events: frozenset[str],
+    frame: Callable[[Event], str | None] | None = None,
+    closing: str | None = None,
 ) -> AsyncIterator[str]:
-    """Produce the frames of one stream: replay, then live, with the handoff reconciled."""
+    """Produce the frames of one stream: replay, then live, with the handoff reconciled.
+
+    ``frame`` renders one event (``None`` skips it); the enveloped :func:`format_frame` by
+    default. ``closing`` is written after a terminal event, when given — the log pane's
+    ``log.closed``.
+    """
+    render = frame if frame is not None else partial(format_frame, generator=generator)
     highest = parse_last_event_id(last_event_id)
     manager: AbstractContextManager[Subscription] | None = None
     subscription: Subscription | None = None
@@ -378,9 +389,13 @@ async def _frames(
             for event in batch:
                 if event.sequence <= highest:
                     continue
-                yield format_frame(event, generator=generator)
+                rendered = render(event)
+                if rendered is not None:
+                    yield rendered
                 highest = event.sequence
                 if event.type in terminal_events:
+                    if closing is not None:
+                        yield closing
                     return
             if len(batch) < replay_batch_size:
                 break
@@ -401,9 +416,13 @@ async def _frames(
             # is why subscribing early cannot produce a duplicate.
             if live.sequence <= highest:
                 continue
-            yield format_frame(live, generator=generator)
+            rendered = render(live)
+            if rendered is not None:
+                yield rendered
             highest = live.sequence
             if live.type in terminal_events:
+                if closing is not None:
+                    yield closing
                 return
     except Exception as exc:  # noqa: BLE001 — any source failure becomes one terminal frame
         logger.exception("sse.source_failed", extra={"stream_id": stream_id})
@@ -469,6 +488,95 @@ def sse_response(
             "Connection": "keep-alive",
             # Nginx buffers a proxied response by default, which turns a live stream into one
             # large delivery at the end. This is the documented way to turn that off.
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+def log_line(text: str, *, level: str = "info") -> str:
+    """One line of a ``log_pane``, as the pane's ``sse-swap="log"`` region expects it.
+
+    The pane appends each ``log`` frame's data as HTML (``hx-swap="beforeend"``) and colours it
+    from ``data-level`` (``components.css``); ``log_pane.js`` trims by ``.log-pane-line``. So a
+    producer sends this fragment and nothing else — the text is escaped here, whatever it holds.
+
+    Args:
+        text: The line, as text. Escaped on output.
+        level: ``debug`` | ``info`` | ``warning`` | ``error`` — the colour, not a severity the
+            pane interprets.
+
+    Returns:
+        The fragment.
+    """
+    return f'<div class="log-pane-line" data-level="{html.escape(level)}">{html.escape(text)}</div>'
+
+
+LOG_PANE_EVENT: Final = "log"
+LOG_PANE_CLOSED_EVENT: Final = "log.closed"
+
+
+def log_pane_response(
+    source: EventSource,
+    *,
+    stream_id: str,
+    last_event_id: str | None,
+    render_line: Callable[[Event], str | None],
+    generator: GeneratorInfo,
+    heartbeat_seconds: float = DEFAULT_HEARTBEAT_SECONDS,
+    replay_batch_size: int = DEFAULT_REPLAY_BATCH_SIZE,
+    poll_interval_seconds: float = DEFAULT_POLL_INTERVAL_SECONDS,
+    terminal_events: frozenset[str] = DEFAULT_TERMINAL_EVENTS,
+) -> StreamingResponse:
+    """Stream ``stream_id``'s events into a ``log_pane``: one ``log`` frame per event, then
+    ``log.closed`` after a terminal one.
+
+    The same replay-then-live loop as :func:`sse_response`, over the same source, so a pane and
+    the application's enveloped stream can never disagree about what happened; only the frame
+    differs — an HTML fragment from :func:`log_line`, which is what htmx's SSE extension swaps
+    into the pane. A source failure still ends with the enveloped ``error`` frame, which the pane
+    does not swap; the connection closes, and ``sse-close`` is not sent — that is the one case a
+    reconnect is the right answer.
+
+    Args:
+        source: The application's event source.
+        stream_id: Which stream.
+        last_event_id: The client's ``Last-Event-ID`` header, or ``None``.
+        render_line: One event to its line text, via :func:`log_line`; ``None`` to skip the event
+            (a token frame, say). The pane shows what the application chooses to say about an
+            event, in its own words.
+        generator: The producing application, for the terminal ``error`` frame.
+        heartbeat_seconds: As :func:`sse_response`.
+        replay_batch_size: As :func:`sse_response`.
+        poll_interval_seconds: As :func:`sse_response`.
+        terminal_events: Event names after which ``log.closed`` is sent and the stream ends.
+
+    Returns:
+        The streaming response.
+    """
+
+    def frame(event: Event) -> str | None:
+        line = render_line(event)
+        if line is None:
+            return None
+        return f"id: {event.sequence}\nevent: {LOG_PANE_EVENT}\ndata: {line}\n\n"
+
+    return StreamingResponse(
+        _frames(
+            source,
+            stream_id=stream_id,
+            last_event_id=last_event_id,
+            generator=generator,
+            heartbeat_seconds=heartbeat_seconds,
+            replay_batch_size=replay_batch_size,
+            poll_interval_seconds=poll_interval_seconds,
+            terminal_events=terminal_events,
+            frame=frame,
+            closing=f"event: {LOG_PANE_CLOSED_EVENT}\ndata: {{}}\n\n",
+        ),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache, no-store",
+            "Connection": "keep-alive",
             "X-Accel-Buffering": "no",
         },
     )

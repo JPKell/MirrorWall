@@ -15,6 +15,15 @@ What WeightRoomGym rows W3–W9 needed from MirrorWall after `0.3.0`, released s
 WeightRoomGym's `ci.lock` can pin a published version (row W10; its CI had been red on the
 `mirrorwall==0.2.2` pin since W3).
 
+### Added (row WM2)
+
+- `log_pane_response(source, *, stream_id, last_event_id, render_line, generator, …)` and
+  `log_line(text, level=…)`: the server half of `log_pane`. The same replay-then-live loop as
+  `sse_response` over the same event source, rendering each event as one `log` frame whose data
+  is the escaped `.log-pane-line` fragment htmx swaps in, and `log.closed` after a terminal event
+  — so the four applications feed the pane from the streams they already persist, with no second
+  event store and no per-application copy of the loop.
+
 ### Fixed
 
 - **`CsrfMiddleware` reads the token from a `multipart/form-data` body.** Multipart posts were
