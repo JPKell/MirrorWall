@@ -202,12 +202,19 @@
 </nav>
 {%- endmacro %}
 
-{% macro chart_container(chart_id, title, description) -%}
+{% macro chart_container(chart_id, title, description, option=None) -%}
 {# The chart is decoration; the caller's table alternative carries the same figures, so a reader
-   who cannot see the chart loses nothing (UI standards §5, §7). #}
+   who cannot see the chart loses nothing (UI standards §5, §7). `option` is an ECharts option
+   dict (ADR-0142) — omitted, this renders exactly as it always has: no `.chart-surface` element,
+   no `data-echarts`, byte-identical to a page that never opts into ECharts (`mirrorwall.echarts`,
+   `charts.js`). Colour is never in `option`: `charts.js` themes every chart from tokens at draw
+   time, so the same JSON draws correctly in both themes. #}
 <figure class="chart" id="{{ chart_id }}">
   <figcaption>{{ title }}</figcaption>
   <p class="muted">{{ description }}</p>
+  {%- if option is not none %}
+  <div class="chart-surface" data-echarts='{{ option | tojson }}'></div>
+  {%- endif %}
   {{ caller() }}
 </figure>
 {%- endmacro %}

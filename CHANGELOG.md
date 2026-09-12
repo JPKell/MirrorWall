@@ -7,7 +7,26 @@ packaging and release standards §3.
 
 ## [Unreleased]
 
-Nothing yet.
+### Added (row WX6)
+
+- **ECharts 6.1.0 vendored**, pinned (`static/vendor/echarts/echarts.min.js`, Apache-2.0
+  `LICENSE` beside it), loaded only when a page's context sets `mirrorwall.echarts` true — the
+  same opt-in shape ADR-0128 gave htmx. `charts.js` (previously an empty stub) reads every
+  `[data-echarts]` element `chart_container()` renders, calls `echarts.init`, and themes the
+  option from `--mw-chart-1..6`/`--mw-text-muted`/transparent background read fresh at draw time,
+  redrawing on `theme.js`'s existing `mirrorwall:themechange` event — a chart never carries one
+  theme's colours into the other. `chart_container(chart_id, title, description, option=None)`
+  gains the `option` parameter (an ECharts option dict); omitted, the macro renders exactly as
+  `0.3.1` did, byte-identical. ADR-0142 (`WeightRoom/docs/adr/0142-…`) supersedes ADR-0139 for
+  this one library by name and records the measured size: 1 121 883 bytes (1.07 MiB) uncompressed,
+  367 915 bytes gzipped — the full build (every chart type, including the heatmap a later
+  WeightRoomGym row wants), 71.6 KiB over spec §15's stated 1 MB ceiling, which the ADR asks be
+  revised to the measured figure rather than trimmed to the smaller `common` build that lacks the
+  heatmap. `THIRD_PARTY_NOTICES.md`'s "Not vendored" charting-library paragraph is withdrawn with
+  it. `tests/unit/test_assets.py`'s no-external-request scan now excludes `static/vendor/` (a
+  third-party bundle's own namespace-URI constants and licence-header comment are not a runtime
+  fetch — the same rationale `test_no_application_vocabulary.py` already carries for that
+  directory); the digest and licence tests carry no such exemption.
 
 ## [0.3.1] — 2026-09-10
 

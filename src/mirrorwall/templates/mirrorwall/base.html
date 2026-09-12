@@ -12,8 +12,13 @@
    `mirrorwall.htmx` true, so a page that never asks for it renders exactly as it did under 0.2.2
    — the same gold standard the rest of this template already holds to. `mirrorwall.htmx` is
    probed with `is defined` throughout, which is safe under `StrictUndefined` whether or not the
-   application passes a `mirrorwall` context object at all. #}
+   application passes a `mirrorwall` context object at all.
+
+   ECharts (ADR-0142) is the same opt-in, `mirrorwall.echarts`: a page that never asks for it loads
+   neither `vendor/echarts/echarts.min.js` nor `charts.js`, and `chart_container()`'s own fallback
+   content is all it ever rendered. #}
 {%- set htmx_enabled = mirrorwall is defined and mirrorwall.htmx is defined and mirrorwall.htmx %}
+{%- set echarts_enabled = mirrorwall is defined and mirrorwall.echarts is defined and mirrorwall.echarts %}
 <!doctype html>
 <html lang="{{ language | default('en') }}">
 <head>
@@ -89,6 +94,10 @@
   <script src="{{ 'vendor/htmx/htmx.min.js' | asset_url }}" defer></script>
   <script src="{{ 'vendor/htmx/htmx-ext-sse.js' | asset_url }}" defer></script>
   <script src="{{ 'js/log_pane.js' | asset_url }}" defer></script>
+  {%- endif %}
+  {%- if echarts_enabled %}
+  <script src="{{ 'vendor/echarts/echarts.min.js' | asset_url }}" defer></script>
+  <script src="{{ 'js/charts.js' | asset_url }}" defer></script>
   {%- endif %}
   {% block scripts %}{% endblock %}
 </body>
