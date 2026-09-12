@@ -21,6 +21,20 @@ Both files are vendored under ADR-0128 (`WeightRoom/docs/adr/0128-…`): pinned,
 package with the same content-hashed URL every asset gets, no CDN, no fetch at runtime. Combined
 they are under 20 KB gzipped, the budget the ADR sets.
 
+### ECharts 6.1.0
+
+`static/vendor/echarts/echarts.min.js` — the full UMD build (every chart type, including the
+heatmap a later WeightRoomGym row wants; the `common` build is ~400 KB smaller but has none).
+Licence: Apache License 2.0 (`static/vendor/echarts/LICENSE`). Source:
+https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js
+
+Vendored under ADR-0142 (`WeightRoom/docs/adr/0142-…`, superseding ADR-0139 for this one library
+by name): pinned, served the same way as htmx, no CDN, no fetch at runtime, loaded only when a
+page's context sets `mirrorwall.echarts` true (`chart_container()`'s `data-echarts`, `charts.js`).
+1 121 883 bytes uncompressed (1.07 MiB), 367 915 bytes gzipped — 71.6 KiB over spec §15's
+"Charting vendor ≤ 1 MB" row at the pinned version; the ADR carries the measurement and the
+decision to keep the full build for the heatmap rather than trim to `common` and stay under it.
+
 ### JetBrains Mono 2.304 (via `@fontsource/jetbrains-mono` 5.2.5)
 
 `static/fonts/jetbrains-mono/JetBrainsMono-Regular.woff2` and
@@ -35,12 +49,6 @@ https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.2.5/files/
 
 That is a design outcome, not an omission:
 
-* **Charting library.** No third-party chart library is vendored. Every chart in the suite is
-  inline SVG drawn from the caller's own figures, with each series coloured by a `--mw-chart-*`
-  token — which is what lets the theme switch re-theme a chart without redrawing it, and what
-  keeps `charts.css`'s accessible table alternative the same data rather than a parallel copy.
-  A library would add a licence, a checksum to maintain, and a second colour system to reconcile
-  with the tokens.
 * **Inter.** The font is *named first* in `--mw-font-ui` and is not shipped. The stack
   (`Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`)
   renders in Inter where the reader has it and in the platform UI face otherwise — a difference in

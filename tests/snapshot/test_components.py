@@ -290,6 +290,24 @@ def test_chart_container_pairs_a_figure_with_a_described_alternative(
     assert "<figure" in html
     assert "<figcaption>Throughput</figcaption>" in html
     assert "Same figures as the table below" in html
+    # ADR-0142: no `option` renders exactly as MirrorWall always has — no ECharts surface at all.
+    assert "data-echarts" not in html
+    assert "chart-surface" not in html
+
+
+def test_chart_container_with_an_option_adds_an_echarts_surface_beside_the_alternative(
+    environment: Environment,
+) -> None:
+    html = render(
+        environment,
+        MACROS + "chart_container %}{% call chart_container('c', 'Throughput', 'desc',"
+        " option={'series': [{'type': 'line', 'data': [1, 2]}]}) %}<table></table>{% endcall %}",
+    )
+    assert '<div class="chart-surface" data-echarts=\'{"series":' in html
+    assert (
+        '"type": "line"' in html
+    )  # tojson's JSON quotes are untouched inside a single-quoted attr
+    assert "<table></table>" in html  # the caller's accessible alternative still renders
 
 
 def test_filter_bar_is_a_search_landmark(environment: Environment) -> None:

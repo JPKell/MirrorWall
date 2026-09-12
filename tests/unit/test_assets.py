@@ -75,10 +75,19 @@ def test_every_vendored_file_is_recorded_in_the_third_party_notices() -> None:
 
 
 def test_no_stylesheet_or_script_reaches_out_to_a_network_origin() -> None:
-    """Spec §14: a page load makes no external request."""
+    """Spec §14: a page load makes no external request.
+
+    ``static/vendor/`` is excluded (ADR-0142): a third-party bundle's own namespace-URI constants
+    (ECharts builds SVG nodes with ``createElementNS`` against ``w3.org`` URIs, a string, never a
+    fetch) and its licence-header comment are not the runtime request this test exists to catch —
+    the same rationale ``test_no_application_vocabulary.py`` already carries for the same
+    directory. The digest and licence tests above carry no such exemption.
+    """
     offenders: dict[str, list[str]] = {}
     for path in sorted(PACKAGE_STATIC_DIR.rglob("*")):
         if not path.is_file() or path.suffix not in {".css", ".js", ".svg"}:
+            continue
+        if "vendor" in path.relative_to(PACKAGE_STATIC_DIR).parts:
             continue
         # An XML namespace URI is an identifier, not a fetch: nothing resolves it at page load.
         text = re.sub(r'xmlns(:\w+)?="[^"]*"', "", path.read_text(encoding="utf-8"))
